@@ -1,0 +1,74 @@
+site_name: The Garden Church — Livestream Playbook
+site_description: Everything the Livestream Team needs to recruit, train, and run a great weekend.
+site_url: https://the-garden-church.github.io/playbook-livestream
+repo_url: https://github.com/The-Garden-Church/playbook-livestream
+repo_name: The-Garden-Church/playbook-livestream
+copyright: "LAST_UPDATED_DATE"
+
+extra:
+  generator: false
+
+theme:
+  name: material
+  logo: assets/logo.webp
+  favicon: assets/logo.webp
+  font:
+    text: Montserrat
+    code: JetBrains Mono
+  palette:
+    - scheme: default
+      primary: black
+      accent: black
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: false
+      type: date
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Join the Team:
+    - Overview: recruitment/index.md
+    - What to Expect: recruitment/what-to-expect.md
+    - How to Apply: recruitment/how-to-apply.md
+  - Expectations:
+    - Overview: expectations/index.md
+    - Commitment: expectations/commitment.md
+    - Standards & Culture: expectations/standards.md
+  - Weekend Process:
+    - Overview: weekend-process/index.md
+    - Pre-Service Checklist: weekend-process/pre-service.md
+    - During Service: weekend-process/during-service.md
+    - Post-Service Checklist: weekend-process/post-service.md
+    - Troubleshooting: weekend-process/troubleshooting.md
+  - Hardware:
+    - Overview: hardware/index.md
+    - Equipment List: hardware/equipment-list.md
+    - Setup & Teardown: hardware/setup-teardown.md
+    - Maintenance: hardware/maintenance.md
+  - Training:
+    - Overview: training/index.md
+    - Onboarding: training/onboarding.md
+    - Role-Specific Guides: training/roles.md
+    - Resources: training/resources.md
