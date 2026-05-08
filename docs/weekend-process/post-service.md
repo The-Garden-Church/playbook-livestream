@@ -29,6 +29,32 @@
 - [ ] Log any issues in the issue log
 - [ ] Team Lead closes out the serve
 
+### Post a weekend update in GroupMe
+
+Once everything is packed up and put away, **any team member can drop a quick debrief in the team GroupMe channel.**
+
+A good debrief post covers:
+
+<div class="tile-grid tile-grid--3">
+  <div class="tile">
+    <p class="tile__label">Cover</p>
+    <p class="tile__title">How it went</p>
+    <p class="tile__body">A sentence or two on the overall vibe of the service.</p>
+  </div>
+  <div class="tile">
+    <p class="tile__label">Cover</p>
+    <p class="tile__title">Issues hit or solved</p>
+    <p class="tile__body">Anything that broke, glitched, or got worked around — even if it was fixed in the moment. The team learns from these.</p>
+  </div>
+  <div class="tile">
+    <p class="tile__label">Cover</p>
+    <p class="tile__title">Wins and celebrations</p>
+    <p class="tile__body">A great moment, a sharp camera move, a new person who served their first weekend, a story from someone in the room. Call it out.</p>
+  </div>
+</div>
+
+This keeps the whole team plugged in even when they were not on the schedule, and it builds the kind of culture we want.
+
 ## Sign out
 
 - [ ] All team members signed out

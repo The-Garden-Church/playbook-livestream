@@ -1,6 +1,24 @@
 # Troubleshooting
 
+<div class="solutions-first" markdown>
+  <p class="solutions-first__title">Solutions first.</p>
+  <p class="solutions-first__sub">Anyone can be a critic. This job is to be a problem solver.</p>
+  <p class="solutions-first__body">We absolutely want to hear about issues, that is how the team gets better. But when you raise something, come with a suggested fix or an idea worth trying, not just the problem. A flagged issue plus a possible solution moves us forward. A flagged issue on its own is just a complaint.</p>
+</div>
+
 Quick-reference for the most common problems during a live service.
+
+---
+
+!!! danger "Emergency in the room — people before production"
+    If something happens in the room that puts people at risk — medical event, fire alarm, security incident, evacuation — **stop the stream and help.**
+
+    1. **Stop the stream.** A black screen is the right answer.
+    2. **Help.** Get out of the way of first responders, security, or pastoral staff. If you can directly help someone, do.
+    3. **Defer to security and church staff** for direction. They lead the response, not us.
+    4. **Do not start the stream back up** until the Team Lead or pastoral staff give the green light.
+
+    Nothing on the stream is more important than the people in the room.
 
 ---
 
@@ -54,3 +72,6 @@ Quick-reference for the most common problems during a live service.
 
 !!! note "After any incident"
     Log what happened, when, and what fixed it. This helps the whole team learn and improves the playbook over time.
+
+!!! tip "Got an idea to improve this?"
+    Tell Jay. See [Feedback](../feedback.md) for how to reach him.

@@ -48,6 +48,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Our Why: our-why.md
   - Join the Team:
     - Overview: recruitment/index.md
     - What to Expect: recruitment/what-to-expect.md
@@ -70,5 +71,7 @@ nav:
   - Training:
     - Overview: training/index.md
     - Onboarding: training/onboarding.md
+    - Glossary: training/glossary.md
     - Role-Specific Guides: training/roles.md
     - Resources: training/resources.md
+  - Feedback: feedback.md
