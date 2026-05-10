@@ -1,37 +1,314 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-/* ─── Base ─────────────────────────────────────────────────── */
-:root {
-  --tgc-black: #000000;
-  --tgc-white: #f5f5f5;
-  --tgc-mid: #1a1a1a;
-  --tgc-border: #e0e0e0;
-  --md-text-font: "Montserrat", sans-serif;
-  --md-code-font: "JetBrains Mono", monospace;
+/* ─── Base (dark mode, always-on) ──────────────────────────── */
+:root,
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  /* Brand palette — dark mode */
+  --tgc-bg: #121212;
+  --tgc-surface: #1C1C1C;
+  --tgc-surface-2: #262626;
+  --tgc-fill: #000000;
+  --tgc-accent: #FFFFFF;
+  --tgc-gold: #a8956b;
+  --tgc-gold-soft: #857655;
+  --tgc-border: #2A2A2A;
+  --tgc-text: rgba(255, 255, 255, 0.82);
+  --tgc-text-soft: rgba(255, 255, 255, 0.6);
+  --tgc-text-mute: rgba(255, 255, 255, 0.45);
+
+  /* Legacy aliases — most rules use these. They now point at dark-mode
+     equivalents so the bulk of the stylesheet works without changes:
+       --tgc-black → high-contrast accent (white-ish), used for text/borders
+       --tgc-white → elevated dark surface, used for card backgrounds
+     Inverted-highlight blocks (hero, alerts, table headers) explicitly
+     use --tgc-fill for their backgrounds. */
+  --tgc-black: var(--tgc-accent);
+  --tgc-white: var(--tgc-surface);
+  --tgc-mid: var(--tgc-bg);
+
+  --tgc-font-stack: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --md-text-font: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --md-code-font: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Material core color overrides */
+  --md-default-bg-color: var(--tgc-bg);
+  --md-default-fg-color: var(--tgc-text);
+  --md-default-fg-color--light: rgba(255, 255, 255, 0.7);
+  --md-default-fg-color--lighter: var(--tgc-text-soft);
+  --md-default-fg-color--lightest: var(--tgc-text-mute);
+  --md-typeset-color: var(--tgc-text);
+  --md-typeset-a-color: var(--tgc-accent);
+  --md-code-bg-color: var(--tgc-surface);
+  --md-code-fg-color: var(--tgc-text);
+  /* Material's naming is reversed: --md-primary-fg-color is the primary
+     color itself (used as the header bg), --md-primary-bg-color is the
+     text color rendered on top of it. */
+  --md-primary-fg-color: var(--tgc-fill);
+  --md-primary-bg-color: var(--tgc-accent);
+  --md-primary-bg-color--light: var(--tgc-text);
+}
+
+/* ─── Global type scale ─────────────────────────────────────── */
+/* Material defaults html to 137.5%; scaling down nudges every
+   rem-based size (body, headings, components) proportionally. */
+html {
+  font-size: 125%;
+}
+
+/* ─── Layout: hide left sidebar, keep TOC, widen grid ──────── */
+/* Top tabs already cover global navigation, so the left sidebar
+   is redundant. The right TOC stays for in-page navigation on
+   longer pages (checklists, troubleshooting). */
+@media screen and (min-width: 60em) {
+  .md-sidebar--primary {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-main__inner.md-grid,
+  .md-grid {
+    max-width: 72rem;
+  }
+}
+
+/* ─── Table of Contents (right sidebar) ────────────────────── */
+.md-sidebar--secondary {
+  background-color: transparent;
+  border-right: none;
+  padding-top: 0;
+}
+
+.md-sidebar--secondary .md-sidebar__scrollwrap {
+  margin: 0;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--tgc-border);
+}
+
+/* The toc label is wired to a hidden checkbox for mobile collapse;
+   on desktop the toggle isn't used, so strip its clickable chrome
+   (hover oval, sticky background, leftover icon space). */
+.md-sidebar--secondary .md-nav__icon {
+  display: none;
+}
+
+.md-sidebar--secondary .md-nav--secondary > .md-nav__title {
+  display: block;
+  font-family: var(--tgc-font-stack);
+  font-weight: 700;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--tgc-text-mute);
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 0 0.85rem;
+  margin: 0;
+  white-space: normal;
+  height: auto;
+  line-height: 1.2;
+  cursor: default;
+  pointer-events: none;
+}
+
+.md-sidebar--secondary .md-nav--secondary > .md-nav__title:hover,
+.md-sidebar--secondary .md-nav--secondary > .md-nav__title:focus {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.md-sidebar--secondary .md-nav__list {
+  padding: 0;
+}
+
+.md-sidebar--secondary .md-nav__item {
+  padding: 0;
+}
+
+.md-sidebar--secondary .md-nav__link {
+  font-family: var(--tgc-font-stack);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--tgc-text-soft);
+  padding: 0.35rem 0;
+  margin: 0;
+  border-left: 2px solid transparent;
+  padding-left: 0.65rem;
+  margin-left: -0.65rem;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.md-sidebar--secondary .md-nav__link:hover {
+  color: var(--tgc-black);
+}
+
+.md-sidebar--secondary .md-nav__link--active,
+.md-sidebar--secondary .md-nav__link--passed {
+  color: var(--tgc-black);
+}
+
+.md-sidebar--secondary .md-nav__link--active {
+  font-weight: 700;
+  border-left-color: var(--tgc-gold);
+}
+
+/* Nested TOC entries (h3 under h2) get a hint of indent */
+.md-sidebar--secondary .md-nav .md-nav .md-nav__link {
+  font-size: 0.74rem;
+  padding-left: 1.5rem;
+  margin-left: -0.65rem;
+  color: var(--tgc-text-mute);
+}
+
+/* ─── Serving Panel (home page sidebar) ────────────────────── */
+.serving-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.serving-panel__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.85rem;
+  background-color: var(--tgc-surface);
+  border: 1px solid var(--tgc-border);
+  border-left: 3px solid var(--tgc-gold);
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.serving-panel__link:hover {
+  border-color: var(--tgc-gold);
+  box-shadow: 3px 3px 0 var(--tgc-gold);
+  transform: translate(-1px, -1px);
+}
+
+.serving-panel__label {
+  font-family: var(--tgc-font-stack);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--tgc-text-mute);
+}
+
+.serving-panel__cta {
+  font-family: var(--tgc-font-stack);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--tgc-gold);
+  line-height: 1.25;
+}
+
+.serving-panel__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  background-color: var(--tgc-fill);
+  color: var(--tgc-accent) !important;
+  text-decoration: none !important;
+  margin-top: 0.25rem;
+  transition: background-color 0.12s ease;
+}
+
+.serving-panel__alert:hover {
+  background-color: var(--tgc-surface-2);
+}
+
+.serving-panel__alert-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.85;
+  margin-top: 0.1rem;
+}
+
+.serving-panel__alert-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-family: var(--tgc-font-stack);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.serving-panel__alert-text strong {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+}
+
+.serving-panel__alert-text span {
+  opacity: 0.7;
+  font-weight: 500;
 }
 
 /* ─── Typography ────────────────────────────────────────────── */
 body {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   -webkit-font-smoothing: antialiased;
+  background-color: var(--tgc-bg);
+  background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23a8956b' fill-opacity='0.06' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 h1, h2, h3, h4, h5, h6,
 .md-typeset h1,
 .md-typeset h2,
 .md-typeset h3 {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
 
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  color: #FFFFFF;
+}
+
 .md-typeset h1 {
   font-size: 2.2rem;
   line-height: 1.1;
-  border-bottom: 2px solid var(--tgc-black);
+  border-bottom: 2px solid var(--tgc-gold);
   padding-bottom: 0.4em;
   margin-bottom: 1em;
+}
+
+/* Permalink icons (¶) on headings: subtle, small, muted */
+.md-typeset .headerlink {
+  font-size: 0.55em;
+  color: var(--tgc-text-mute) !important;
+  opacity: 0;
+  margin-left: 0.4em;
+  vertical-align: middle;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+
+.md-typeset h1:hover .headerlink,
+.md-typeset h2:hover .headerlink,
+.md-typeset h3:hover .headerlink,
+.md-typeset h4:hover .headerlink,
+.md-typeset h5:hover .headerlink,
+.md-typeset h6:hover .headerlink,
+.md-typeset .headerlink:focus {
+  opacity: 0.5;
+}
+
+.md-typeset .headerlink:hover {
+  opacity: 1 !important;
+  color: var(--tgc-gold) !important;
 }
 
 .md-typeset h2 {
@@ -43,18 +320,20 @@ h1, h2, h3, h4, h5, h6,
 .md-typeset h3 {
   font-size: 1rem;
   letter-spacing: 0.08em;
-  color: #555;
 }
 
 /* ─── Header / Nav ──────────────────────────────────────────── */
-.md-header {
-  background-color: var(--tgc-black);
+/* !important ensures we beat Material's slate-scheme defaults
+   (which otherwise paint the header as #14151b). */
+.md-header,
+[data-md-color-scheme="slate"] .md-header {
+  background-color: var(--tgc-fill) !important;
   box-shadow: none;
-  border-bottom: 1px solid #222;
+  border-bottom: none;
 }
 
 .md-header__title {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-weight: 700;
   font-size: 0.85rem;
   text-transform: uppercase;
@@ -67,13 +346,14 @@ h1, h2, h3, h4, h5, h6,
   filter: invert(1) brightness(2);
 }
 
-.md-tabs {
-  background-color: var(--tgc-black);
-  border-bottom: 1px solid #222;
+.md-tabs,
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: var(--tgc-fill) !important;
+  border-bottom: none;
 }
 
 .md-tabs__link {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -86,19 +366,37 @@ h1, h2, h3, h4, h5, h6,
   opacity: 1;
 }
 
+/* ─── Header: Last Updated (replaces repo source slot) ─────── */
+.md-header__last-updated {
+  font-family: var(--tgc-font-stack);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0 0.6rem 0 1rem;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 44em) {
+  .md-header__last-updated {
+    display: none;
+  }
+}
+
 /* ─── Sidebar ───────────────────────────────────────────────── */
 .md-sidebar {
-  background-color: var(--tgc-white);
+  background-color: var(--tgc-surface);
   border-right: 1px solid var(--tgc-border);
 }
 
 .md-nav__title {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-weight: 700;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #888;
+  color: var(--tgc-text-mute);
 }
 
 .md-nav__link {
@@ -113,47 +411,199 @@ h1, h2, h3, h4, h5, h6,
 
 /* ─── Content ───────────────────────────────────────────────── */
 .md-content {
-  background-color: #fff;
+  background-color: transparent;
 }
 
 .md-typeset {
   font-size: 0.9rem;
   line-height: 1.8;
-  color: #1a1a1a;
+  color: var(--tgc-text);
 }
 
 .md-typeset a {
-  color: var(--tgc-black);
+  color: var(--tgc-accent);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .md-typeset a:hover {
-  color: #444;
+  color: #FFFFFF;
 }
 
 /* ─── Checklist items ───────────────────────────────────────── */
+/* Layout: the LI is the positioning context, the checkbox is absolutely
+   positioned at the top-left so it stays anchored to the first line of
+   text even when the item wraps. We use absolute positioning rather
+   than flexbox because flex would treat each inline child (text nodes,
+   <strong>, etc.) as a separate flex item and break items that contain
+   bold or other inline elements. */
+
+/* Reset the UL's inherited bullet-indent for task lists so the
+   checkbox column sits flush against the LI's left edge instead of
+   inheriting Material's default list padding. */
+.md-typeset ul.task-list,
+.md-typeset ul:has(> .task-list-item),
+.md-typeset ul:has(.task-list-item) {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  list-style: none !important;
+}
+
 .md-typeset .task-list-item {
   list-style: none;
+  position: relative;
+  padding: 0.4rem 0.3rem 0.4rem 2.4em !important;
+  margin: 0 0 0 -0.4em !important;
+  border-radius: 0.2rem;
+}
+
+/* Pull the .task-list-control label out of inline flow entirely. Even
+   with the <input> sized to zero, the label still occupies inline
+   width, which pushes the text away from the icon. By making the
+   label `position: absolute` at the LI's top-left, the inline text
+   starts directly at the LI's content edge (padding-left), and the
+   icon (rendered as a ::before on .task-list-indicator inside the
+   label) overlays the LI's left padding column. The control's `top`
+   offset matches the LI's padding-top so the indicator stays anchored
+   to the first line of text when the row's vertical padding grows. */
+.md-typeset .task-list-item .task-list-control {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.25rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hidden <input> takes no layout space. Clicks on the .task-list-control
+   label still toggle it via the standard label-input pattern. */
+.md-typeset .task-list-item input[type="checkbox"] {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+}
+
+/* The visible checkbox is a ::before pseudo on .task-list-indicator.
+   Override left and top so it sits at the LI's left-padding column,
+   aligned with the cap-height of the first line of text. !important is
+   needed because Material's rule ships in the theme stylesheet with
+   high specificity. */
+.md-typeset .task-list-item .task-list-indicator::before,
+.md-typeset .task-list-control .task-list-indicator::before {
+  left: 0.4em !important;
+  top: 0.4em !important;
+}
+
+/* Whole-row click target: enabled by JS via .tgc-task-row */
+.md-typeset .task-list-item.tgc-task-row {
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.md-typeset .task-list-item.tgc-task-row:hover {
+  background-color: var(--tgc-surface);
+}
+
+/* Fade completed items so unchecked work stands out at a glance.
+   No transition: the fade is applied instantly on click so the checkbox
+   never flashes at full intensity before the row dims (which otherwise
+   reads as a flicker). :has() is supported across all current evergreen
+   browsers. */
+.md-typeset .task-list-item:has(input[type="checkbox"]:checked) {
+  opacity: 0.55;
+}
+
+/* Per-section progress counter, e.g. "Video check (3/5)" */
+.md-typeset h2 .tgc-section-count {
+  font-family: var(--tgc-font-stack);
+  font-weight: 500;
+  font-size: 0.7em;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--tgc-text-mute);
+  margin-left: 0.7em;
+  vertical-align: middle;
+}
+
+.md-typeset h2 .tgc-section-count--done {
+  color: var(--tgc-gold);
+  font-weight: 700;
+}
+
+/* ─── Interactive Checklist Controls ────────────────────────── */
+.tgc-checklist-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 1.1rem 1.25rem 1.2rem;
+  margin: 1rem 0 2rem;
+  background-color: var(--tgc-surface);
+  border: 1px solid var(--tgc-border);
+  border-left: 3px solid var(--tgc-gold);
+}
+
+.tgc-checklist-note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--tgc-text-soft);
+}
+
+.tgc-checklist-note strong {
+  font-family: var(--tgc-font-stack);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  color: var(--tgc-black);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.tgc-checklist-reset {
+  font-family: var(--tgc-font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.55rem 1.1rem;
+  background-color: var(--tgc-fill);
+  color: var(--tgc-accent);
+  border: 1px solid var(--tgc-black);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tgc-checklist-reset:hover {
+  background-color: var(--tgc-surface);
+  color: var(--tgc-black);
+}
+
+.tgc-checklist-reset:focus {
+  outline: 2px solid var(--tgc-gold);
+  outline-offset: 2px;
 }
 
 /* ─── Admonitions ───────────────────────────────────────────── */
 .md-typeset .admonition,
 .md-typeset details {
   border: 1px solid var(--tgc-border);
-  border-left: 3px solid var(--tgc-black);
+  border-left: 3px solid var(--tgc-gold);
   border-radius: 0;
   box-shadow: none;
 }
 
 .md-typeset .admonition-title,
 .md-typeset summary {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background-color: var(--tgc-white) !important;
+  background-color: var(--tgc-surface) !important;
   color: var(--tgc-black) !important;
 }
 
@@ -170,9 +620,9 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .md-typeset table:not([class]) th {
-  background-color: var(--tgc-black);
-  color: var(--tgc-white);
-  font-family: "Montserrat", sans-serif;
+  background-color: var(--tgc-fill);
+  color: var(--tgc-accent);
+  font-family: var(--tgc-font-stack);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -180,11 +630,11 @@ h1, h2, h3, h4, h5, h6,
 
 /* ─── Footer ────────────────────────────────────────────────── */
 .md-footer {
-  background-color: var(--tgc-black);
+  background-color: var(--tgc-fill);
 }
 
 .md-footer-meta {
-  background-color: #111;
+  background-color: #0A0A0A;
 }
 
 /* ─── Home Alert Strip ──────────────────────────────────────── */
@@ -193,15 +643,15 @@ h1, h2, h3, h4, h5, h6,
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.25rem;
-  background-color: var(--tgc-black);
-  color: var(--tgc-white) !important;
+  background-color: var(--tgc-fill);
+  color: var(--tgc-accent) !important;
   text-decoration: none !important;
   margin-bottom: 1rem;
   transition: background-color 0.15s ease;
 }
 
 .home-alert:hover {
-  background-color: #1a1a1a;
+  background-color: var(--tgc-surface);
 }
 
 .home-alert__icon {
@@ -212,7 +662,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .home-alert__title {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -221,7 +671,7 @@ h1, h2, h3, h4, h5, h6,
 
 .home-alert__cta {
   margin-left: auto;
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.75rem;
   font-weight: 600;
   opacity: 0.7;
@@ -240,7 +690,7 @@ h1, h2, h3, h4, h5, h6,
   flex-direction: column;
   gap: 0.4rem;
   padding: 1.5rem;
-  background-color: var(--tgc-white);
+  background-color: var(--tgc-surface);
   border: 1px solid var(--tgc-border);
   text-decoration: none !important;
   color: inherit !important;
@@ -248,8 +698,8 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .home-card:hover {
-  border-color: var(--tgc-black);
-  box-shadow: 4px 4px 0 var(--tgc-black);
+  border-color: var(--tgc-gold);
+  box-shadow: 4px 4px 0 var(--tgc-gold);
   color: inherit !important;
 }
 
@@ -262,12 +712,12 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .home-card__label {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #888;
+  color: var(--tgc-text-mute);
 }
 
 .home-card p {
@@ -278,12 +728,12 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .home-card__cta {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--tgc-black);
+  color: var(--tgc-gold);
   margin-top: 0.5rem;
 }
 
@@ -295,7 +745,7 @@ h1, h2, h3, h4, h5, h6,
 
 /* ─── Search ────────────────────────────────────────────────── */
 .md-search__input {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   border-radius: 0;
 }
 
@@ -323,23 +773,23 @@ h1, h2, h3, h4, h5, h6,
   flex-direction: column;
   gap: 0.35rem;
   padding: 1.1rem 1.25rem 1.2rem;
-  background-color: var(--tgc-white);
+  background-color: var(--tgc-surface);
   border: 1px solid var(--tgc-border);
-  border-left: 3px solid var(--tgc-black);
+  border-left: 3px solid var(--tgc-gold);
 }
 
 .tile__label {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #888;
+  color: var(--tgc-text-mute);
   margin: 0 0 0.1rem;
 }
 
 .tile__title {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 1rem;
   font-weight: 700;
   margin: 0;
@@ -351,29 +801,35 @@ h1, h2, h3, h4, h5, h6,
   font-size: 0.82rem;
   line-height: 1.55;
   margin: 0.15rem 0 0;
-  color: #444;
+  color: var(--tgc-text-soft);
 }
 
 .tile--invert {
-  background-color: var(--tgc-black);
-  border-color: var(--tgc-black);
-  border-left-color: var(--tgc-black);
+  background-color: var(--tgc-fill);
+  border-color: var(--tgc-gold);
+  border-left-color: var(--tgc-gold);
 }
 
 .tile--invert .tile__label { color: rgba(255, 255, 255, 0.55); }
-.tile--invert .tile__title { color: var(--tgc-white); }
+.tile--invert .tile__title { color: var(--tgc-accent); }
 .tile--invert .tile__body { color: rgba(255, 255, 255, 0.78); }
 
 /* ─── Solutions First Callout ───────────────────────────────── */
+/* When a page leads with this hero, suppress the auto-rendered H1
+   so the hero stands alone as the page's opening statement. */
+.md-typeset:has(> .solutions-first) > h1 {
+  display: none;
+}
+
 .solutions-first {
   margin: 0 0 2rem;
   padding: 1.75rem 1.75rem 1.5rem;
-  background-color: var(--tgc-black);
-  color: var(--tgc-white);
+  background-color: var(--tgc-fill);
+  color: var(--tgc-accent);
 }
 
 .solutions-first__title {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-weight: 800;
   font-size: 2.4rem;
   line-height: 1;
@@ -383,7 +839,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .solutions-first__sub {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.95rem;
   font-weight: 500;
   line-height: 1.4;
@@ -392,7 +848,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .solutions-first__body {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--tgc-font-stack);
   font-size: 0.85rem;
   line-height: 1.7;
   opacity: 0.75;

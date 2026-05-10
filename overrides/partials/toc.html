@@ -1,0 +1,43 @@
+{% if page.is_homepage %}
+  <label class="md-nav__title" for="__toc">
+    <span class="md-nav__icon md-icon"></span>
+    Serving Panel
+  </label>
+
+  <div class="serving-panel">
+    <a class="serving-panel__link" href="{{ 'weekend-process/pre-service/' | url }}">
+      <span class="serving-panel__label">Pre-Service</span>
+      <span class="serving-panel__cta">Setup checklist →</span>
+    </a>
+    <a class="serving-panel__link" href="{{ 'weekend-process/during-service/' | url }}">
+      <span class="serving-panel__label">During Service</span>
+      <span class="serving-panel__cta">Live reference →</span>
+    </a>
+    <a class="serving-panel__link" href="{{ 'weekend-process/post-service/' | url }}">
+      <span class="serving-panel__label">Post-Service</span>
+      <span class="serving-panel__cta">Wrap-up →</span>
+    </a>
+
+    <a class="serving-panel__alert" href="{{ 'weekend-process/troubleshooting/' | url }}">
+      <svg class="serving-panel__alert-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+      <span class="serving-panel__alert-text">
+        <strong>Something broken?</strong>
+        <span>Go to Troubleshooting →</span>
+      </span>
+    </a>
+  </div>
+{% else %}
+  {% if "toc.integrate" not in features %}
+    {% set toc = page.toc %}
+    {% if toc | first is defined and "\x3ch1 id=" in page.content %}
+      {% set toc = (toc | first).children %}
+    {% endif %}
+    {% if toc | first is defined %}
+      <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+        {% for toc_item in toc %}
+          {% include "partials/toc-item.html" %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+{% endif %}

@@ -1,3 +1,13 @@
+---
+hide:
+  - toc
+  - navigation
+---
+
+<style>
+  .md-content__inner > h1:first-child { display: none; }
+</style>
+
 <a class="home-alert" href="weekend-process/troubleshooting/">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="home-alert__icon"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
   <span class="home-alert__title">Something broken?</span>
@@ -38,7 +48,7 @@
   <a class="home-card" href="recruitment/">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="home-card__icon"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     <span class="home-card__label">Join the Team</span>
-    <p>Interested in serving? Start here.</p>
+    <p>Apply to serve on the Livestream Team.</p>
     <span class="home-card__cta">Learn more →</span>
   </a>
 </div>

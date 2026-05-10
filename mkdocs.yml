@@ -1,24 +1,24 @@
-site_name: The Garden Church — Livestream Playbook
+site_name: TGC - Livestream Playbook
 site_description: Everything the Livestream Team needs to recruit, train, and run a great weekend.
 site_url: https://the-garden-church.github.io/playbook-livestream
 repo_url: https://github.com/The-Garden-Church/playbook-livestream
 repo_name: The-Garden-Church/playbook-livestream
-copyright: "LAST_UPDATED_DATE"
 
 extra:
   generator: false
 
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/logo.webp
   favicon: assets/logo.webp
   font:
     text: Montserrat
     code: JetBrains Mono
   palette:
-    - scheme: default
+    - scheme: slate
       primary: black
-      accent: black
+      accent: white
   features:
     - navigation.tabs
     - navigation.sections
@@ -30,11 +30,11 @@ theme:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/interactive-checklists.js
+
 plugins:
   - search
-  - git-revision-date-localized:
-      enable_creation_date: false
-      type: date
 
 markdown_extensions:
   - admonition
@@ -42,36 +42,29 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: true
   - attr_list
   - toc:
       permalink: true
+      toc_depth: 2
 
 nav:
   - Home: index.md
   - Our Why: our-why.md
-  - Join the Team:
-    - Overview: recruitment/index.md
-    - What to Expect: recruitment/what-to-expect.md
-    - How to Apply: recruitment/how-to-apply.md
-  - Expectations:
-    - Overview: expectations/index.md
-    - Commitment: expectations/commitment.md
-    - Standards & Culture: expectations/standards.md
+  - Join the Team: recruitment.md
+  - Expectations: expectations.md
   - Weekend Process:
     - Overview: weekend-process/index.md
     - Pre-Service Checklist: weekend-process/pre-service.md
     - During Service: weekend-process/during-service.md
     - Post-Service Checklist: weekend-process/post-service.md
     - Troubleshooting: weekend-process/troubleshooting.md
-  - Hardware:
-    - Overview: hardware/index.md
-    - Equipment List: hardware/equipment-list.md
-    - Setup & Teardown: hardware/setup-teardown.md
-    - Maintenance: hardware/maintenance.md
+  - Hardware: hardware.md
   - Training:
-    - Overview: training/index.md
     - Onboarding: training/onboarding.md
-    - Glossary: training/glossary.md
     - Role-Specific Guides: training/roles.md
-    - Resources: training/resources.md
+    - Glossary: training/glossary.md
+  - Credentials: credentials.md
   - Feedback: feedback.md

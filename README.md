@@ -1,4 +1,4 @@
-# The Garden Church — Livestream Playbook
+# TGC - Livestream Playbook
 
 The official playbook for The Garden Church Livestream Team.
 

@@ -26,12 +26,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install MkDocs Material
-        run: pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
-
-      - name: Inject build date into footer
-        run: |
-          BUILD_DATE=$(date +'%B %-d, %Y')
-          sed -i "s/LAST_UPDATED_DATE/Last updated: ${BUILD_DATE}/g" mkdocs.yml
+        run: pip install mkdocs-material
 
       - name: Build site
         run: mkdocs build

@@ -8,11 +8,13 @@
 
 ## Archive & export
 
-<!-- TODO: Document your recording archive process -->
+Recordings live on the SSD attached to the ATEM. After the second service ends, upload both recordings to Dropbox.
 
-- [ ] Export or transfer recording to designated storage location
-- [ ] Rename file with correct date and service name format
-- [ ] Confirm upload/backup complete before closing software
+- [ ] Stop the ATEM recording and confirm both service files have finalized on the SSD
+- [ ] Unplug the SSD from the ATEM and plug it into the Livestream Mac
+- [ ] In Dropbox, create a folder named with the service date in `yyyy.MM.dd` format (e.g. `2026.05.10`)
+- [ ] Upload both service recordings into that folder
+- [ ] Wait for Dropbox to finish syncing both files before unplugging the SSD or closing the laptop
 
 ## Teardown
 
@@ -25,7 +27,7 @@
 
 ## Debrief
 
-- [ ] Quick team debrief — what went well, what needs attention
+- [ ] Quick team debrief covering what went well and what needs attention
 - [ ] Log any issues in the issue log
 - [ ] Team Lead closes out the serve
 
@@ -44,7 +46,7 @@ A good debrief post covers:
   <div class="tile">
     <p class="tile__label">Cover</p>
     <p class="tile__title">Issues hit or solved</p>
-    <p class="tile__body">Anything that broke, glitched, or got worked around — even if it was fixed in the moment. The team learns from these.</p>
+    <p class="tile__body">Anything that broke, glitched, or got worked around, even if it was fixed in the moment. The team learns from these.</p>
   </div>
   <div class="tile">
     <p class="tile__label">Cover</p>
@@ -53,7 +55,7 @@ A good debrief post covers:
   </div>
 </div>
 
-This keeps the whole team plugged in even when they were not on the schedule, and it builds the kind of culture we want.
+This keeps the whole team in the loop, even when they aren't scheduled.
 
 ## Sign out
 

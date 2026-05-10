@@ -1,15 +1,11 @@
 # Our Why
 
 <div class="solutions-first" markdown>
-  <p class="solutions-first__title">Extend the church beyond the room.</p>
-  <p class="solutions-first__sub">The people in the seats are only part of who we're serving. We're also showing up for everyone who can't be there.</p>
+  <p class="solutions-first__title">Signal through the static.</p>
+  <p class="solutions-first__sub">This team's reach extends well past our weekend gathering. We meet people where they are, when they're ready. The impact is eternal, and it reaches further than any of us will know.</p>
 </div>
 
-## Who is on the other side of the stream
-
-When a camera is rolling, picture who you're shooting for.
-
-<div class="tile-grid">
+<div class="tile-grid tile-grid--3">
   <div class="tile">
     <p class="tile__label">At home</p>
     <p class="tile__title">Members</p>
@@ -17,31 +13,34 @@ When a camera is rolling, picture who you're shooting for.
   </div>
   <div class="tile">
     <p class="tile__label">Off-site</p>
-    <p class="tile__title">Parents with young kids</p>
+    <p class="tile__title">Young families</p>
     <p class="tile__body">Moms and dads who can't always get to a service in person.</p>
   </div>
   <div class="tile">
     <p class="tile__label">Far away</p>
-    <p class="tile__title">The homebound</p>
+    <p class="tile__title">Homebound</p>
     <p class="tile__body">People who can't physically get to the building anymore but still belong to this church family.</p>
   </div>
   <div class="tile">
     <p class="tile__label">Curious</p>
-    <p class="tile__title">Exploring The Garden Church</p>
-    <p class="tile__body">Someone curious but not ready to walk through the doors yet. The stream is often their first impression of who we are.</p>
+    <p class="tile__title">Newcomers</p>
+    <p class="tile__body">People who aren't ready to walk through the doors yet. The stream is often their first impression of the church.</p>
   </div>
   <div class="tile">
     <p class="tile__label">Connected</p>
-    <p class="tile__title">Friends and family</p>
+    <p class="tile__title">Friends &amp; family</p>
     <p class="tile__body">People watching because someone they love is part of this church.</p>
+  </div>
+  <div class="tile">
+    <p class="tile__label">On campus</p>
+    <p class="tile__title">Other rooms</p>
+    <p class="tile__body">Kids ministry volunteers and moms in the nursing room following along from where they're serving or caring.</p>
   </div>
 </div>
 
-Whoever is on the other end of that stream, they are not a number. They are a person who chose to be present, even from a distance. The job is to make that distance disappear as much as we can.
-
 ## Ministry, not just AV
 
-This is a production team, and the technical craft matters. But the work itself is ministry. The way we serve, the care we put into a shot, the patience we have with each other, the welcome we give to a new face in the lobby — all of it is part of the call.
+The technical craft matters. So does the work itself. How we serve, how we frame a shot, how we treat each other, how we welcome a new face in the lobby: all of it is part of the call.
 
 <div class="tile-grid tile-grid--4">
   <div class="tile tile--invert">
@@ -67,6 +66,16 @@ This is a production team, and the technical craft matters. But the work itself 
 </div>
 
 !!! note "If something feels off"
-    If any of this starts to drift, in yourself or in the team, talk to Jay. This is the kind of thing we want to catch early.
+    If any of this starts to drift, in yourself or in the team, talk to the Team Lead. Catch it early.
 
-<!-- TODO: Jay to layer in Garden Church-specific culture, mission language, and any direct ties to the church's broader vision. -->
+## HONORED
+
+HONORED is the leadership culture across The Garden Church. It shapes how every team operates, including this one.
+
+- **H — Heart.** We have a heart for the house.
+- **O — Ownership.** We build teams from nothing to accomplish everything.
+- **N — Normal.** We make saying the uncomfortable normal.
+- **O — On fire.** We run through all the fire.
+- **R — Ridiculous.** We hold ridiculously high standards.
+- **E — Elegant.** We make the complicated feel simple.
+- **D — Development.** We are gluttons for growth.
