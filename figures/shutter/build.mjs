@@ -2,6 +2,7 @@ import * as k from "../anatomy/kit/iso-kit.mjs";
 import * as G from "../anatomy/kit/lathe.mjs";
 import { kitScript } from "../anatomy/scripts/inline-kit.mjs";
 import { writeFigure } from "../embed.mjs";
+import { springTo } from "../spring.mjs";
 
 const WIDTH = 600;
 const HEIGHT = 450;
@@ -325,6 +326,7 @@ const P = ${JSON.stringify(P)};
 const R = ${R}, TURN_SECONDS = ${TURN_SECONDS}, GATE_HALF = ${GATE_HALF}, KNOB = ${JSON.stringify(KNOB)}, LID_TOP = ${LID_TOP};
 const KNOB_STOPS = ${JSON.stringify(KNOB_STOPS)};
 const pie = ${pie.toString()};
+const springTo = ${springTo.toString()};
 const edges = ${edges.toString()};
 const readoutOf = ${readoutOf.toString()};
 const exposureAt = ${exposureAt.toString()};
@@ -379,7 +381,9 @@ function describe() {
   stage.setAttribute("aria-valuetext", readoutOf(ANGLES[index]));
 }
 function choose(next) {
+  const from = index;
   index = Math.max(0, Math.min(ANGLES.length - 1, next));
+  if (index !== from) window.detent();
   describe();
   if (still.matches) turn = ANGLES[index] / 2;
   run();
@@ -396,7 +400,8 @@ function tick(now) {
       if (touring && ++tourTurns % 2 === 0) { tourStep = (tourStep + 1) % TOUR.length; index = TOUR[tourStep]; describe(); }
     }
   }
-  const moving = settle(open, ANGLES[index], dt, 0.13, calm) | settle(dial, KNOB_STOPS[index], dt, 0.12, calm);
+  const turning = calm || touring ? settle(dial, KNOB_STOPS[index], dt, 0.12, calm) : springTo(dial, KNOB_STOPS[index], dt);
+  const moving = settle(open, ANGLES[index], dt, 0.13, calm) | turning;
   draw();
   frame = visible && (!calm || moving) ? requestAnimationFrame(tick) : 0;
 }

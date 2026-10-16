@@ -858,6 +858,19 @@ const pie = function pie(r, from, span) {
   if (span >= 359.2) return `M0 ${-r}A${r} ${r} 0 1 1 0 ${r}A${r} ${r} 0 1 1 0 ${-r}Z`;
   return `M0 0L${pt(from)}A${r} ${r} 0 ${span > 180 ? 1 : 0} 1 ${pt(from + span)}Z`;
 };
+const springTo = function springTo(state, target, dt) {
+  const w = 50, damping = 0.65, steps = 4, h = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    state.v += (w * w * (target - state.x) - 2 * damping * w * state.v) * h;
+    state.x += state.v * h;
+  }
+  if (Math.abs(target - state.x) < 1e-3 && Math.abs(state.v) < 1e-2) {
+    state.x = target;
+    state.v = 0;
+    return false;
+  }
+  return true;
+};
 const edges = function edges(r, span) {
   const RAD = Math.PI / 180;
   if (span <= 0.8 || span >= 359.2) return "M0 0Z";
@@ -935,7 +948,9 @@ function describe() {
   stage.setAttribute("aria-valuetext", readoutOf(ANGLES[index]));
 }
 function choose(next) {
+  const from = index;
   index = Math.max(0, Math.min(ANGLES.length - 1, next));
+  if (index !== from) window.detent();
   describe();
   if (still.matches) turn = ANGLES[index] / 2;
   run();
@@ -952,7 +967,8 @@ function tick(now) {
       if (touring && ++tourTurns % 2 === 0) { tourStep = (tourStep + 1) % TOUR.length; index = TOUR[tourStep]; describe(); }
     }
   }
-  const moving = settle(open, ANGLES[index], dt, 0.13, calm) | settle(dial, KNOB_STOPS[index], dt, 0.12, calm);
+  const turning = calm || touring ? settle(dial, KNOB_STOPS[index], dt, 0.12, calm) : springTo(dial, KNOB_STOPS[index], dt);
+  const moving = settle(open, ANGLES[index], dt, 0.13, calm) | turning;
   draw();
   frame = visible && (!calm || moving) ? requestAnimationFrame(tick) : 0;
 }
