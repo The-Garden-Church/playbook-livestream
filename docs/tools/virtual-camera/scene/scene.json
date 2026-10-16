@@ -1,0 +1,16 @@
+{
+  "image": "stage.png",
+  "reference": { "fStop": 4, "shutterDeg": 180, "iso": 400, "wbK": 4000, "tint": 0 },
+  "lightK": 4000,
+  "lens": { "focalMm": 70, "sensorMm": 17.3 },
+  "layers": [
+    { "id": "wall", "label": "the LED wall", "distanceM": 16, "mask": "mask-wall.png" },
+    { "id": "mid", "label": "the curtains and truss", "distanceM": 12, "mask": "mask-mid.png" },
+    { "id": "stage", "label": "the stage floor", "distanceM": 7, "mask": "remainder" },
+    { "id": "subject", "label": "the speaker", "distanceM": 6, "mask": "mask-subject.png" },
+    { "id": "lectern", "label": "the lectern", "distanceM": 5.8, "mask": "mask-lectern.png" }
+  ],
+  "subject": "subject",
+  "ledWall": { "layer": "wall", "refreshHz": 60, "bandsPerFrame": 9 },
+  "motion": { "layer": "subject", "amplitude": 0.02, "periodS": 3.6, "direction": [1, 0.08] }
+}
