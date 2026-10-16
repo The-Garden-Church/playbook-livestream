@@ -12,11 +12,10 @@ const EXPLAINERS = {
     const label = CONTROLS.shutterDeg.format(v);
     const wall = scene.ledWall;
     if (v === scene.reference.shutterDeg) return `${label}: standard. Half of each frame, natural motion${wall ? ", no flicker" : ""}.`;
-    const mover = scene.motion.label;
-    const motion = v < 150 ? `${mover} freeze mid-move, so motion looks choppy` : v > 200 ? `${mover} smear as they move` : "natural motion";
+    const motion = v < 150 ? "motion looks choppy" : v > 200 ? "moving hands smear" : "natural motion";
     const parts = [brightness(stopsBetween("shutterDeg", v, scene.reference.shutterDeg)), motion];
     if (wall) {
-      const { amplitude } = ledBanding(v, FPS, wall.refreshHz);
+      const amplitude = ledBanding(v, FPS, wall.refreshHz);
       parts.push(amplitude === 0 ? "no flicker" : amplitude < 0.1 ? "faint bands on the LED wall" : "and the LED wall bands");
     }
     return `${label}: ${parts.join(", ")}.`;
@@ -59,7 +58,7 @@ const EXPLAINERS = {
     const label = CONTROLS.focusM.format(camera.focusM);
     const subject = scene.layers.find((l) => l.id === scene.subject);
     if (inDepthOfField(subject.distanceM, camera, scene.lens)) return `${label}: ${subject.label} is sharp.`;
-    const sharp = scene.layers.filter((l) => !l.partOf && inDepthOfField(l.distanceM, camera, scene.lens));
+    const sharp = scene.layers.filter((l) => inDepthOfField(l.distanceM, camera, scene.lens));
     if (sharp.length === 0) return `${label}: nothing in the shot is sharp. ${capitalize(subject.label)} is at ${CONTROLS.focusM.format(subject.distanceM)}.`;
     return `${label}: focus is on ${sharp.map((l) => l.label).join(" and ")}, so ${subject.label} is soft.`;
   },
