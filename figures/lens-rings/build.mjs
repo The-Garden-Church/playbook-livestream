@@ -566,7 +566,7 @@ draw();
 const body =
   style +
   k.plateHtml({
-    fig: "Fig 1",
+    fig: "Fig 4",
     title: "Zoom and focus rings",
     hint: "Drag a ring · ← → zoom · ↑ ↓ focus",
     readout: readoutOf(ZOOM_START, FOCUS_START),
