@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Frame the shot</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="framing.css" />
+  </head>
+  <body>
+    <main class="frame-tool">
+      <section class="finder" aria-label="Camera viewfinder">
+        <div class="status"><span id="readout" aria-live="polite"><span class="long"></span><span class="short" aria-hidden="true"></span></span><span id="zoom-readout"></span></div>
+        <div class="screen">
+          <canvas id="view" tabindex="0" role="img" aria-roledescription="viewfinder"></canvas>
+          <div class="tally" id="tally" hidden><i></i>Live</div>
+          <p class="toast" id="toast" hidden>Smooth it out.</p>
+          <p class="failed" id="failed" hidden>The practice photo didn't load. Refresh the page to try again.</p>
+        </div>
+        <div class="tools" role="group" aria-label="Guides">
+          <button type="button" data-guide="thirds" aria-pressed="false"><span class="long">Rule of thirds</span><span class="short">Thirds</span></button>
+          <button type="button" data-guide="headroom" aria-pressed="false"><span class="long">Headroom line</span><span class="short">Headroom</span></button>
+          <button type="button" data-guide="lowerThird" aria-pressed="false"><span class="long">Lower third</span><span class="short">Lower 3rd</span></button>
+          <button type="button" data-guide="safe" aria-pressed="false"><span class="long">Safe areas</span><span class="short">Safe</span></button>
+        </div>
+        <p class="hint drag-hint">Drag the picture to pan and tilt. It moves like a camera on a fluid head. Drag right to pan right, and the picture slides left.</p>
+      </section>
+
+      <section class="panel" aria-label="Framing controls">
+        <div class="modes segmented" role="tablist" aria-label="Mode">
+          <button type="button" role="tab" data-mode="free" aria-selected="true">Free play</button>
+          <button type="button" role="tab" data-mode="calls" aria-selected="false">Shot calls</button>
+        </div>
+
+        <div id="calls" hidden>
+          <ol class="scenario-list" id="call-list"></ol>
+          <p class="hint" id="pick-hint">Pick a call. The camera starts in the wrong shot. Frame what the director asked for, then ask if you're ready.</p>
+          <div class="brief" id="brief" hidden></div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><label for="zoom">Zoom</label><output id="zoom-out"></output></div>
+          <div class="slider zoom-slider"><span class="end" aria-hidden="true">W</span><input type="range" id="zoom" min="0" max="1000" step="1" aria-describedby="zoom-why" /><span class="end" aria-hidden="true">T</span></div>
+          <p class="why" id="zoom-why">Slide right to push in (tighter), left to pull out (wider). Arrow keys pan and tilt, and + and - zoom.</p>
+        </div>
+
+        <div class="sizes-box">
+          <p class="sizes-title">Shot sizes</p>
+          <ol class="sizes" id="sizes"></ol>
+          <p class="why">A wide shot and an extreme wide need a camera that can see his feet. From this spot the widest you can go stops at his knees.</p>
+        </div>
+      </section>
+
+      <section class="director" aria-label="Director check">
+        <div class="actions">
+          <button type="button" id="check" class="primary">Director ready?</button>
+          <button type="button" id="live" aria-pressed="false">Go live</button>
+          <button type="button" id="reset">Reset shot</button>
+        </div>
+        <div id="results" class="results" aria-live="polite"></div>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

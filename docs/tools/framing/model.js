@@ -39,6 +39,7 @@ export const SHOT_SIZES = [
   },
   {
     id: "cowboy",
+    abbr: null,
     name: "Cowboy shot",
     what: "mid-thigh up",
     anchor: ["midThigh", "midThigh", 0],
@@ -137,7 +138,8 @@ export function classify(bottom, scene) {
 }
 
 export function shotLabel(size) {
-  return `${size.name} (${size.id === "cowboy" ? "cowboy" : size.id}), ${size.what}`;
+  const abbr = size.abbr === null ? "" : ` (${size.id})`;
+  return `${size.name}${abbr}, ${size.what}`;
 }
 
 export function measure(frame, scene) {

@@ -32,7 +32,7 @@ test("the readout names the shot the way the lesson does", () => {
     "Close-up (CU), head and shoulders",
     "Medium close-up (MCU), chest up",
     "Medium shot (MS), waist up",
-    "Cowboy shot (cowboy), mid-thigh up",
+    "Cowboy shot, mid-thigh up",
     "Medium long shot (MLS), knees up",
     "Wide shot (WS), head to toe",
     "Extreme wide shot (EWS), the whole stage",

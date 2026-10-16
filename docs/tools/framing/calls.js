@@ -44,7 +44,7 @@ export const SHOT_CALLS = [
   {
     id: "lower-third",
     call: "Lower third coming",
-    brief: "Graphics is about to put his name on screen. Turn on the lower third guide and make sure his chin sits above it. A medium close-up, centered.",
+    brief: "Graphics is about to put his name on screen, and the lower third guide shows where it will go. Make sure his chin sits above it. A medium close-up, centered.",
     shot: "MCU",
     placement: "centered",
     lowerThird: true,
