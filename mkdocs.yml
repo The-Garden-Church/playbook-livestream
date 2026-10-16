@@ -38,6 +38,11 @@ extra_javascript:
 plugins:
   - search
 
+exclude_docs: |
+  tools/**/*.test.mjs
+  tools/**/package.json
+  tools/**/README.md
+
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -74,6 +79,7 @@ nav:
       - White Balance and Tint: training/camera-basics/white-balance.md
       - Zoom and Focus: training/camera-basics/focus-and-zoom.md
       - Dialing In Your Camera: training/camera-basics/dial-in.md
+      - 'Practice: Dial In the Shot': training/camera-basics/practice.md
     - Role-Specific Guides: training/roles.md
     - Glossary: training/glossary.md
   - Credentials: credentials.md

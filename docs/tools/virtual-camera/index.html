@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dial in the shot</title>
+    <link rel="stylesheet" href="vcam.css" />
+  </head>
+  <body>
+    <main class="vcam">
+      <section class="finder" aria-label="Camera viewfinder">
+        <div class="scenes" id="scenes" role="group" aria-label="Camera"></div>
+        <div class="status" id="status"></div>
+        <div class="screen">
+          <canvas id="view" role="img"></canvas>
+          <canvas id="histogram" class="histogram" width="192" height="88" hidden aria-hidden="true"></canvas>
+          <p class="nogl" id="nogl" hidden>
+            This practice camera needs WebGL2, which this browser doesn't have turned on. Try a recent version of Chrome, Edge, Firefox or Safari.
+          </p>
+        </div>
+        <div class="tools" role="group" aria-label="Camera tools">
+          <button type="button" data-tool="zebras" aria-pressed="false">Zebras</button>
+          <button type="button" data-tool="falseColor" aria-pressed="false">False color</button>
+          <button type="button" data-tool="peaking" aria-pressed="false">Focus peaking</button>
+          <button type="button" data-tool="histogram" aria-pressed="false">Histogram</button>
+        </div>
+        <div class="legend" id="legend" hidden>
+          <p class="legend-title">False color chart</p>
+          <ul>
+            <li><i style="background: #7320a0"></i>Crushed to black</li>
+            <li><i style="background: #1a59e6"></i>Too dark</li>
+            <li><i style="background: #808080"></i>In between</li>
+            <li><i style="background: #33bf4d"></i>Middle gray</li>
+            <li><i style="background: #f28cb3"></i>Good skin</li>
+            <li><i style="background: #f2d926"></i>Almost too bright</li>
+            <li><i style="background: #e61f1a"></i>Blown out</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Camera settings">
+        <div class="modes" role="tablist" aria-label="Mode">
+          <button type="button" role="tab" data-mode="free" aria-selected="true">Free play</button>
+          <button type="button" role="tab" data-mode="challenges" aria-selected="false">Challenges</button>
+        </div>
+
+        <div id="challenges" hidden>
+          <ol class="scenario-list" id="scenario-list"></ol>
+          <p class="hint" id="pick-hint">Pick a challenge. The camera starts with something wrong. Find it, fix it, then ask the director.</p>
+          <div class="brief" id="brief" hidden></div>
+        </div>
+
+        <div class="controls" id="controls"></div>
+      </section>
+
+      <section class="director" aria-label="Director check">
+        <div class="actions">
+          <button type="button" id="check" class="primary">Director ready?</button>
+          <button type="button" id="reset">Reset to standard settings</button>
+        </div>
+        <div id="results" class="results" aria-live="polite"></div>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "scenes": [
+    {
+      "id": "wide",
+      "label": "Main camera (wide)",
+      "alt": "The main camera's picture: a speaker at a clear lectern in front of a big LED wall, black curtains and a truss tower",
+      "image": "wide.jpg",
+      "reference": { "fStop": 2.8, "shutterDeg": 180, "iso": 400, "wbK": 4000, "tint": 0 },
+      "lightK": 4000,
+      "lens": { "focalMm": 55, "sensorMm": 18.96 },
+      "layers": [
+        { "id": "wall", "label": "the LED wall", "distanceM": 11, "mask": "wide-mask-wall.png" },
+        { "id": "back", "label": "the curtains and truss", "distanceM": 10, "mask": "remainder" },
+        { "id": "speaker", "label": "the speaker", "distanceM": 7, "mask": "wide-mask-subject.png" }
+      ],
+      "subject": "speaker",
+      "ledWall": { "layer": "wall", "refreshHz": 60, "bandsPerFrame": 9 },
+      "motion": { "layer": "speaker", "label": "the speaker's gestures", "travelM": 0.02, "peakSpeedMps": 0.04, "direction": [1, 0.08] }
+    },
+    {
+      "id": "close",
+      "label": "Side camera (close)",
+      "alt": "The side camera's close picture: the speaker leaning forward with both hands raised mid-gesture",
+      "image": "close.jpg",
+      "reference": { "fStop": 4, "shutterDeg": 180, "iso": 400, "wbK": 4000, "tint": 0 },
+      "lightK": 4000,
+      "lens": { "focalMm": 135, "sensorMm": 18.96 },
+      "layers": [
+        { "id": "back", "label": "the back curtain", "distanceM": 17, "mask": "remainder" },
+        { "id": "gear", "label": "the lectern and keyboard", "distanceM": 14.7, "mask": { "rects": [[0, 880, 2102, 1306]], "featherPx": 6 } },
+        { "id": "speaker", "label": "the speaker", "distanceM": 14, "mask": "close-mask-subject.png" },
+        {
+          "id": "hands",
+          "label": "the speaker's hands",
+          "distanceM": 13.8,
+          "partOf": "speaker",
+          "mask": {
+            "rects": [[1085, 385, 1195, 445], [1015, 440, 1148, 588], [1290, 405, 1470, 625]],
+            "featherPx": 8
+          }
+        }
+      ],
+      "subject": "speaker",
+      "ledWall": null,
+      "motion": { "layer": "hands", "label": "the speaker's hands", "travelM": 0.06, "peakSpeedMps": 0.8, "direction": [1, 0.1] }
+    }
+  ]
+}
