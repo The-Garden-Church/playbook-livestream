@@ -1,0 +1,24 @@
+{
+  "alt": "The main camera's view of a speaker at a clear lectern in front of a big LED wall, black curtains and a truss tower",
+  "image": "../../virtual-camera/scene/wide.jpg",
+  "photo": { "width": 2102, "height": 1306 },
+  "mirrorRight": 420,
+  "zoom": { "maxWidth": 2102, "minWidth": 170 },
+  "landmarks": {
+    "headTop": { "y": 269, "x": 1430 },
+    "eyes": { "y": 370, "x": 1417 },
+    "chin": { "y": 457 },
+    "shoulders": { "y": 507 },
+    "chest": { "y": 650 },
+    "elbows": { "y": 775, "xs": [1100, 1590] },
+    "waist": { "y": 965, "estimated": true },
+    "hips": { "y": 1030 },
+    "midThigh": { "y": 1150 },
+    "knees": { "y": 1275, "estimated": true },
+    "ankles": { "y": 1600, "estimated": true, "belowPhoto": true },
+    "feet": { "y": 1640, "estimated": true, "belowPhoto": true }
+  },
+  "lookDirection": { "x": -1, "y": 0 },
+  "houseHeadroom": 0.07,
+  "lowerThird": { "left": 0.15, "right": 0.85, "top": 0.76, "bottom": 0.94 }
+}
