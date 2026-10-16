@@ -81,7 +81,7 @@ canvas.addEventListener("pointermove", (event) => {
   if (!prev) return;
   const scale = state.target.width / canvas.clientWidth;
   if (pointers.size === 1) {
-    setTarget({ cx: state.target.cx + (event.clientX - prev.x) * scale, cy: state.target.cy + (event.clientY - prev.y) * scale });
+    setTarget({ cx: state.target.cx - (event.clientX - prev.x) * scale, cy: state.target.cy - (event.clientY - prev.y) * scale });
   } else {
     const [a, b] = [...pointers.values()];
     const before = Math.hypot(a.x - b.x, a.y - b.y);
