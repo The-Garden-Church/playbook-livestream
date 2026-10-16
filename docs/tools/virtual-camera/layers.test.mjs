@@ -23,7 +23,7 @@ test("a moving layer is not extended under the layers in front of it", () => {
   const color = Float32Array.from([...BLUE, ...BLUE, ...RED]);
   const masks = [Float32Array.from([1, 0, 0]), Float32Array.from([0, 1, 0]), Float32Array.from([0, 0, 1])];
   assert.deepEqual([...buildLayers(color, masks, 3, 1)[1].slice(8)], [0, 0, 255, 255]);
-  assert.deepEqual([...buildLayers(color, masks, 3, 1, (i) => i !== 1)[1].slice(8)], [0, 0, 0, 0]);
+  assert.deepEqual([...buildLayers(color, masks, 3, 1, { extend: (i) => i !== 1 })[1].slice(8)], [0, 0, 0, 0]);
 });
 
 test("the hole behind a moving hand is filled from everything behind it, not just the body, so the hand leaves no skin colored smear", () => {
@@ -31,8 +31,8 @@ test("the hole behind a moving hand is filled from everything behind it, not jus
   const curtain = Float32Array.from([0, 1, 0, 1, 1]);
   const body = Float32Array.from([1, 0, 0, 0, 0]);
   const hand = Float32Array.from([0, 0, 1, 0, 0]);
-  const [, bodyLayer] = buildLayers(color, [curtain, body, hand], 5, 1, (i) => i !== 2);
-  assert.deepEqual([...bodyLayer.slice(8, 12)], [105, 0, 239, 255]);
+  const [, bodyLayer] = buildLayers(color, [curtain, body, hand], 5, 1, { extend: (i) => i !== 2 });
+  assert.deepEqual([...bodyLayer.slice(8, 12)], [130, 0, 228, 255]);
 });
 
 test("where drawn masks overlap the nearer layer wins, and the remainder layer takes whatever is left", () => {
@@ -47,4 +47,14 @@ test("a rectangle mask is soft across its edge and scales from photo pixels to t
   const expected = [0, 0.1563, 0.8438, 1, 1, 0.8438, 0.1563, 0];
   assert.deepEqual(round(rectMask([[2, -10, 6, 10]], 2, 1, 8, 1)), expected);
   assert.deepEqual(round(rectMask([[4, -20, 12, 20]], 4, 0.5, 8, 1)), expected);
+});
+
+test("where a moving part is feathered out of its parent, the parent keeps its own colors, so the cut leaves no seam at rest", () => {
+  const color = Float32Array.from([...RED, ...GREEN, ...BLUE]);
+  const arm = Float32Array.from([1, 0.5, 0]);
+  const hand = Float32Array.from([0, 0.5, 1]);
+  const asDepth = buildLayers(color, [arm, hand], 3, 1, { extend: (i) => i !== 1 })[0];
+  const asPart = buildLayers(color, [arm, hand], 3, 1, { extend: (i) => i !== 1, partsOf: (i) => (i === 0 ? [1] : []) })[0];
+  assert.deepEqual([...asDepth.slice(4, 8)], [255, 0, 0, 255]);
+  assert.deepEqual([...asPart.slice(4, 8)], [0, 255, 0, 255]);
 });

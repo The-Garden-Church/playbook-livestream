@@ -71,15 +71,26 @@ function pushPullFill(color, weight, w, h) {
   for (let l = levels.length - 1; l >= 0; l--) {
     const { p, wt, w: lw, h: lh } = levels[l];
     const fill = new Float32Array(lw * lh * 3);
-    const pw = parent && levels[l + 1].w;
+    const up = parent && levels[l + 1];
+    const clampTo = (v, n) => Math.min(n - 1, Math.max(0, v));
     for (let y = 0; y < lh; y++) {
+      const fy = (y + 0.5) / 2 - 0.5;
+      const y0 = Math.floor(fy);
+      const ty = fy - y0;
       for (let x = 0; x < lw; x++) {
         const i = y * lw + x;
         const a = Math.min(1, wt[i] * 2);
-        const pi = parent ? ((y >> 1) * pw + (x >> 1)) * 3 : 0;
+        for (let k = 0; k < 3; k++) fill[i * 3 + k] = wt[i] > 0 ? p[i * 3 + k] / wt[i] : 0;
+        if (!up || a === 1) continue;
+        const fx = (x + 0.5) / 2 - 0.5;
+        const x0 = Math.floor(fx);
+        const tx = fx - x0;
+        const at = (px, py) => (clampTo(py, up.h) * up.w + clampTo(px, up.w)) * 3;
+        const [c00, c10, c01, c11] = [at(x0, y0), at(x0 + 1, y0), at(x0, y0 + 1), at(x0 + 1, y0 + 1)];
         for (let k = 0; k < 3; k++) {
-          const own = wt[i] > 0 ? p[i * 3 + k] / wt[i] : 0;
-          fill[i * 3 + k] = parent ? own * a + parent[pi + k] * (1 - a) : own;
+          const below =
+            (parent[c00 + k] * (1 - tx) + parent[c10 + k] * tx) * (1 - ty) + (parent[c01 + k] * (1 - tx) + parent[c11 + k] * tx) * ty;
+          fill[i * 3 + k] = fill[i * 3 + k] * a + below * (1 - a);
         }
       }
     }
@@ -88,7 +99,7 @@ function pushPullFill(color, weight, w, h) {
   return parent;
 }
 
-export function buildLayers(color, masks, w, h, extendIndex = () => true) {
+export function buildLayers(color, masks, w, h, { extend = () => true, partsOf = () => [] } = {}) {
   const count = w * h;
   const total = new Float32Array(count);
   for (const m of masks) for (let i = 0; i < count; i++) total[i] += m[i];
@@ -96,13 +107,14 @@ export function buildLayers(color, masks, w, h, extendIndex = () => true) {
   return masks.map((mask, l) => {
     for (let i = 0; i < count; i++) upTo[i] += mask[i];
     const front = Float32Array.from(total, (t, i) => Math.max(0, t - upTo[i]));
-    const open = (i) => front[i] < 0.02;
-    const fill = pushPullFill(color, Float32Array.from(upTo, (u, i) => (open(i) ? u : 0)), w, h);
-    const extend = extendIndex(l);
+    const occluders = Float32Array.from(front);
+    for (const p of partsOf(l)) for (let i = 0; i < count; i++) occluders[i] -= masks[p][i];
+    const fill = pushPullFill(color, Float32Array.from(upTo, (u, i) => (front[i] < 0.02 ? u : 0)), w, h);
+    const extendHere = extend(l);
     const out = new Uint8Array(count * 4);
     for (let i = 0; i < count; i++) {
-      const alpha = Math.min(1, mask[i] + (extend ? front[i] : 0));
-      const own = open(i) && mask[i] > 0;
+      const alpha = Math.min(1, mask[i] + (extendHere ? front[i] : 0));
+      const own = mask[i] > 0 && occluders[i] < 0.02;
       for (let k = 0; k < 3; k++) out[i * 4 + k] = linearToSrgb8((own ? color[i * 3 + k] : fill[i * 3 + k]) * alpha);
       out[i * 4 + 3] = Math.round(alpha * 255);
     }

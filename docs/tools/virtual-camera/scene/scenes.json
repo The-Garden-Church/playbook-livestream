@@ -3,6 +3,7 @@
     {
       "id": "wide",
       "label": "Main camera (wide)",
+      "alt": "The main camera's picture: a speaker at a clear lectern in front of a big LED wall, black curtains and a truss tower",
       "image": "wide.jpg",
       "reference": { "fStop": 2.8, "shutterDeg": 180, "iso": 400, "wbK": 4000, "tint": 0 },
       "lightK": 4000,
@@ -19,6 +20,7 @@
     {
       "id": "close",
       "label": "Side camera (close)",
+      "alt": "The side camera's close picture: the speaker leaning forward with both hands raised mid-gesture",
       "image": "close.jpg",
       "reference": { "fStop": 4, "shutterDeg": 180, "iso": 400, "wbK": 4000, "tint": 0 },
       "lightK": 4000,
@@ -31,7 +33,11 @@
           "id": "hands",
           "label": "the speaker's hands",
           "distanceM": 13.8,
-          "mask": { "image": "close-mask-subject.png", "rects": [[1015, 385, 1195, 600], [1280, 405, 1465, 625]], "featherPx": 24 }
+          "partOf": "speaker",
+          "mask": {
+            "rects": [[1080, 385, 1182, 442], [1015, 440, 1152, 600], [1288, 405, 1470, 625]],
+            "featherPx": 12
+          }
         }
       ],
       "subject": "speaker",

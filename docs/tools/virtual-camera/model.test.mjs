@@ -5,6 +5,7 @@ import {
   exposureStops,
   wbGains,
   noiseSigma,
+  addedNoiseSigma,
   blurRadiusPx,
   motionBlurPx,
   ledBanding,
@@ -70,6 +71,13 @@ test("noise grows with ISO", () => {
   close(noiseSigma(400), 0.007);
   close(noiseSigma(1600), 0.018);
   close(noiseSigma(6400), 0.052);
+});
+
+test("the photo already carries the standard ISO's grain, so only the extra grain is added", () => {
+  close(addedNoiseSigma(400, 400), 0);
+  close(addedNoiseSigma(100, 400), 0);
+  close(addedNoiseSigma(1600, 400), 0.016583, 1e-6);
+  close(addedNoiseSigma(6400, 400), 0.051527, 1e-6);
 });
 
 test("thin lens blur is zero at the focus distance and grows with aperture", () => {
@@ -269,4 +277,6 @@ test("scenes load with layers back to front and reject unknown ids", () => {
   );
   assert.throws(() => parseScenes({ scenes: [{ ...scene, subject: "pastor" }] }), /scene "wide" names layer "pastor"/);
   assert.throws(() => parseScenes({ scenes: [scene, scene] }), /two scenes with the same id/);
+  const behind = { ...closeScene, layers: closeScene.layers.map((l) => (l.id === "hands" ? { ...l, distanceM: 15 } : l)) };
+  assert.throws(() => parseScenes({ scenes: [behind] }), /layer "hands" is part of "speaker", so it needs \{ rects \}, sits in front of it/);
 });

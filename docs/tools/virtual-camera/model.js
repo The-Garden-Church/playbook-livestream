@@ -37,6 +37,11 @@ export function parseScene(raw) {
   }
   for (const layer of layers) {
     if (!maskKind(layer.mask)) throw new Error(`${where} layer "${layer.id}" needs a mask file, "remainder", or { rects }`);
+    if (!layer.partOf) continue;
+    const parent = byId.get(layer.partOf);
+    if (!parent || typeof parent.mask !== "string" || maskKind(layer.mask) !== "rects" || parent.distanceM <= layer.distanceM) {
+      throw new Error(`${where} layer "${layer.id}" is part of "${layer.partOf}", so it needs { rects }, sits in front of it, and "${layer.partOf}" needs a mask file`);
+    }
   }
   if (layers.filter((l) => l.mask === "remainder").length !== 1) throw new Error(`${where} needs exactly one layer with mask "remainder"`);
   return {
@@ -107,6 +112,10 @@ export function wbGains(wbK, tint, lightK) {
 export function noiseSigma(iso) {
   const gain = iso / 100;
   return 0.0025 * Math.sqrt(gain) + 0.0005 * gain;
+}
+
+export function addedNoiseSigma(iso, refIso) {
+  return Math.sqrt(Math.max(0, noiseSigma(iso) ** 2 - noiseSigma(refIso) ** 2));
 }
 
 export function cocMm(layerDepthM, focusM, fStop, focalMm) {

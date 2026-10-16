@@ -34,16 +34,22 @@ export async function loadScene(scene, baseUrl, maxWidth) {
     const rgba = rasterize(await loadImage(new URL(file, baseUrl)), width, height);
     return Float32Array.from({ length: count }, (_, i) => rgba[i * 4] / 255);
   };
+  const byId = new Map(scene.layers.map((l) => [l.id, l]));
   const drawn = await Promise.all(
-    scene.layers.map(async ({ mask }) => {
+    scene.layers.map(async ({ mask, partOf }) => {
       if (mask === "remainder") return null;
       if (typeof mask === "string") return imageMask(mask);
       const region = rectMask(mask.rects, mask.featherPx ?? 0, scale, width, height);
-      if (!mask.image) return region;
-      const base = await imageMask(mask.image);
+      if (!partOf) return region;
+      const base = await imageMask(byId.get(partOf).mask);
       return base.map((v, i) => v * region[i]);
     }),
   );
   const masks = partitionMasks(drawn, count);
-  return { scene, width, height, layers: buildLayers(color, masks, width, height, (i) => scene.layers[i].id !== scene.motion.layer) };
+  const ids = scene.layers.map((l) => l.id);
+  const layers = buildLayers(color, masks, width, height, {
+    extend: (i) => ids[i] !== scene.motion.layer,
+    partsOf: (i) => scene.layers.flatMap((l, j) => (l.partOf === ids[i] ? [j] : [])),
+  });
+  return { scene, width, height, layers };
 }

@@ -1,4 +1,4 @@
-import { FPS, NOISE_CHROMA_RATIO, blurRadiusPx, exposureStops, gestureAt, imagePxPerMetre, ledBanding, motionBlurPx, noiseSigma, wbGains } from "./model.js";
+import { FPS, NOISE_CHROMA_RATIO, addedNoiseSigma, blurRadiusPx, exposureStops, gestureAt, imagePxPerMetre, ledBanding, motionBlurPx, wbGains } from "./model.js";
 
 const MAX_LAYERS = 8;
 const HIST_W = 128;
@@ -182,7 +182,7 @@ export function frameUniforms(camera, scene, scenario, timeS, width, height) {
     bandCount: scene.ledWall?.bandsPerFrame ?? 0,
     gain: 2 ** (exposureStops(camera, scene.reference) + (scenario?.sceneExposureOffset ?? 0)),
     wb: wbGains(camera.wbK, camera.tint, scene.lightK),
-    sigma: noiseSigma(camera.iso),
+    sigma: addedNoiseSigma(camera.iso, scene.reference.iso),
   };
 }
 
