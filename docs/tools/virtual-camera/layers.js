@@ -108,12 +108,18 @@ export function buildLayers(color, masks, w, h, { extend = () => true, partsOf =
     for (let i = 0; i < count; i++) upTo[i] += mask[i];
     const front = Float32Array.from(total, (t, i) => Math.max(0, t - upTo[i]));
     const occluders = Float32Array.from(front);
-    for (const p of partsOf(l)) for (let i = 0; i < count; i++) occluders[i] -= masks[p][i];
+    const behindParts = new Float32Array(count);
+    for (const { index, region } of partsOf(l)) {
+      for (let i = 0; i < count; i++) {
+        occluders[i] -= masks[index][i];
+        behindParts[i] = Math.max(behindParts[i], region[i]);
+      }
+    }
     const fill = pushPullFill(color, Float32Array.from(upTo, (u, i) => (front[i] < 0.02 ? u : 0)), w, h);
     const extendHere = extend(l);
     const out = new Uint8Array(count * 4);
     for (let i = 0; i < count; i++) {
-      const alpha = Math.min(1, mask[i] + (extendHere ? front[i] : 0));
+      const alpha = Math.min(1, Math.max(mask[i] + (extendHere ? front[i] : 0), behindParts[i]));
       const own = mask[i] > 0 && occluders[i] < 0.02;
       for (let k = 0; k < 3; k++) out[i * 4 + k] = linearToSrgb8((own ? color[i * 3 + k] : fill[i * 3 + k]) * alpha);
       out[i * 4 + 3] = Math.round(alpha * 255);

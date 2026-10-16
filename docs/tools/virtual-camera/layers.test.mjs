@@ -53,8 +53,27 @@ test("where a moving part is feathered out of its parent, the parent keeps its o
   const color = Float32Array.from([...RED, ...GREEN, ...BLUE]);
   const arm = Float32Array.from([1, 0.5, 0]);
   const hand = Float32Array.from([0, 0.5, 1]);
+  const region = Float32Array.from([0, 0.5, 1]);
   const asDepth = buildLayers(color, [arm, hand], 3, 1, { extend: (i) => i !== 1 })[0];
-  const asPart = buildLayers(color, [arm, hand], 3, 1, { extend: (i) => i !== 1, partsOf: (i) => (i === 0 ? [1] : []) })[0];
+  const asPart = buildLayers(color, [arm, hand], 3, 1, { extend: (i) => i !== 1, partsOf: (i) => (i === 0 ? [{ index: 1, region }] : []) })[0];
   assert.deepEqual([...asDepth.slice(4, 8)], [255, 0, 0, 255]);
   assert.deepEqual([...asPart.slice(4, 8)], [0, 255, 0, 255]);
+});
+
+test("behind a moving part the parent covers the whole cut region, so a gap between fingers leaves no hand shaped ghost when the hand moves", () => {
+  const color = Float32Array.from([...BLUE, ...RED, ...BLUE, ...RED, ...BLUE]);
+  const curtain = Float32Array.from([1, 0, 1, 0, 1]);
+  const handInPhoto = Float32Array.from([0, 1, 0, 1, 0]);
+  const region = Float32Array.from([0, 1, 1, 1, 0]);
+  const body = new Float32Array(5);
+  const hand = handInPhoto.map((v, i) => v * region[i]);
+  const [, bodyLayer] = buildLayers(color, [curtain, body, hand], 5, 1, {
+    extend: (i) => i !== 2,
+    partsOf: (i) => (i === 1 ? [{ index: 2, region }] : []),
+  });
+  assert.deepEqual(
+    [0, 1, 2, 3, 4].map((i) => bodyLayer[i * 4 + 3]),
+    [0, 255, 255, 255, 0],
+  );
+  assert.deepEqual([...bodyLayer.slice(8, 12)], [0, 0, 255, 255]);
 });

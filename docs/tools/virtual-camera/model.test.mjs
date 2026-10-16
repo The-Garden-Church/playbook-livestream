@@ -200,16 +200,18 @@ test("the close lens throws the back curtain only a little out of focus", () => 
 test("the speaker's hands move fast enough to smear at 360 and freeze at 45", () => {
   const pxPerM = imagePxPerMetre(closeScene.motionM, closeScene.lens, 1280);
   close(pxPerM, 666.95, 0.01);
-  const start = gestureAt(closeScene.motion, pxPerM, 0);
-  close(start.offsetPx, 0);
-  close(start.speedPxPerSec, 533.56, 0.01);
-  const turn = gestureAt(closeScene.motion, pxPerM, Math.PI / 40);
-  close(turn.offsetPx, 26.68, 0.01);
-  close(turn.speedPxPerSec, 0, 1e-9);
-  close(motionBlurPx(360, start.speedPxPerSec), 17.79, 0.01);
-  close(motionBlurPx(180, start.speedPxPerSec), 8.89, 0.01);
-  close(motionBlurPx(45, start.speedPxPerSec), 2.22, 0.01);
-  const sway = gestureAt(scene.motion, imagePxPerMetre(scene.motionM, scene.lens, 1280), 0);
+  const rest = gestureAt(closeScene.motion, pxPerM, 0);
+  assert.deepEqual(rest, { offsetPx: 0, speedPxPerSec: 0 });
+  const fastest = gestureAt(closeScene.motion, pxPerM, (3 * Math.PI) / 160);
+  close(fastest.offsetPx, 20.01, 0.01);
+  close(fastest.speedPxPerSec, 533.56, 0.01);
+  const farthest = gestureAt(closeScene.motion, pxPerM, (3 * Math.PI) / 80);
+  close(farthest.offsetPx, 40.02, 0.01);
+  close(farthest.speedPxPerSec, 0, 1e-9);
+  close(motionBlurPx(360, fastest.speedPxPerSec), 17.79, 0.01);
+  close(motionBlurPx(180, fastest.speedPxPerSec), 8.89, 0.01);
+  close(motionBlurPx(45, fastest.speedPxPerSec), 2.22, 0.01);
+  const sway = gestureAt(scene.motion, imagePxPerMetre(scene.motionM, scene.lens, 1280), Math.PI / 8);
   close(motionBlurPx(360, sway.speedPxPerSec), 0.71, 0.01);
 });
 

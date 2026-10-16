@@ -35,14 +35,14 @@
           "distanceM": 13.8,
           "partOf": "speaker",
           "mask": {
-            "rects": [[1080, 385, 1182, 442], [1015, 440, 1152, 600], [1288, 405, 1470, 625]],
-            "featherPx": 12
+            "rects": [[1085, 385, 1195, 445], [1015, 440, 1148, 588], [1290, 405, 1470, 625]],
+            "featherPx": 8
           }
         }
       ],
       "subject": "speaker",
       "ledWall": null,
-      "motion": { "layer": "hands", "label": "the speaker's hands", "travelM": 0.08, "peakSpeedMps": 0.8, "direction": [0.25, 1] }
+      "motion": { "layer": "hands", "label": "the speaker's hands", "travelM": 0.06, "peakSpeedMps": 0.8, "direction": [1, 0.1] }
     }
   ]
 }

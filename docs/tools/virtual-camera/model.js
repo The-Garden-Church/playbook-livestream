@@ -144,8 +144,8 @@ export function gestureAt(motion, pxPerMetre, timeS) {
   const amplitudeM = motion.travelM / 2;
   const w = motion.peakSpeedMps / amplitudeM;
   return {
-    offsetPx: amplitudeM * pxPerMetre * Math.sin(w * timeS),
-    speedPxPerSec: motion.peakSpeedMps * pxPerMetre * Math.cos(w * timeS),
+    offsetPx: amplitudeM * pxPerMetre * (1 - Math.cos(w * timeS)),
+    speedPxPerSec: motion.peakSpeedMps * pxPerMetre * Math.sin(w * timeS),
   };
 }
 
