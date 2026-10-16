@@ -864,3 +864,16 @@ h1, h2, h3, h4, h5, h6,
   border: 0;
   margin: 1.5rem 0;
 }
+
+.kelvin-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  padding: 2.5rem 0.75rem 0.6rem;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ff8a2b 0%, #ffb46b 18%, #ffe2c2 40%, #ffffff 52%, #d8e4ff 72%, #a9c3ff 100%);
+  color: #111;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
