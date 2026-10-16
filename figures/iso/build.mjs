@@ -437,7 +437,7 @@ stage.addEventListener("pointerdown", (event) => {
 });
 stage.addEventListener("pointermove", (event) => {
   if (!drag || event.pointerId !== drag.id) return;
-  const step = svg.getBoundingClientRect().width / 22;
+  const step = Math.max(48, svg.getBoundingClientRect().width / 11);
   const moved = (event.clientX - drag.x) - (event.clientY - drag.y);
   steer(drag.from + Math.round(moved / step));
 });

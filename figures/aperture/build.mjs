@@ -523,7 +523,7 @@ stage.addEventListener("pointerdown", (event) => {
 stage.addEventListener("pointermove", (event) => {
   if (!drag || event.pointerId !== drag.id) return;
   const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
-  const along = (dx * dragDir[0] + dy * dragDir[1]) / (perStop * 0.8 * svgScale());
+  const along = (dx * dragDir[0] + dy * dragDir[1]) / Math.max(26, perStop * 0.95 * svgScale());
   const to = clamp(Math.round(drag.from + along), 0, last);
   if (to === target) return;
   target = to;

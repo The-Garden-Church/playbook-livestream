@@ -423,7 +423,7 @@ stage.addEventListener("pointerdown", (event) => {
 stage.addEventListener("pointermove", (event) => {
   if (!drag || event.pointerId !== drag.id) return;
   const box = svg.getBoundingClientRect();
-  const step = Math.max(22, box.width / 16);
+  const step = Math.max(48, box.width / 9);
   const moved = (event.clientX - drag.x) - (event.clientY - drag.y);
   const raw = drag.from + moved / step;
   if (raw < -0.5 || raw > ANGLES.length - 0.5) {
