@@ -878,6 +878,43 @@ h1, h2, h3, h4, h5, h6,
   font-weight: 600;
 }
 
+.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .shot-grid figure {
+  margin: 0;
+}
+
+.md-typeset .shot-grid figure p {
+  margin: 0;
+}
+
+.md-typeset .shot-grid figure img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+}
+
+.md-typeset .shot-grid figcaption {
+  max-width: none;
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  font-style: normal;
+  line-height: 1.4;
+  text-align: left;
+}
+
+@media (max-width: 760px) {
+  .shot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .tool-launch {
   display: none;
   margin: 1.5rem 0;

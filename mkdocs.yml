@@ -53,6 +53,7 @@ markdown_extensions:
       custom_checkbox: true
       clickable_checkbox: true
   - attr_list
+  - md_in_html
   - toc:
       permalink: true
       toc_depth: 2
@@ -78,6 +79,7 @@ nav:
       - ISO and Gain: training/camera-basics/iso.md
       - White Balance and Tint: training/camera-basics/white-balance.md
       - Zoom and Focus: training/camera-basics/focus-and-zoom.md
+      - Framing the Shot: training/camera-basics/framing.md
       - Dialing In Your Camera: training/camera-basics/dial-in.md
       - 'Practice: Dial In the Shot': training/camera-basics/practice.md
     - Role-Specific Guides: training/roles.md

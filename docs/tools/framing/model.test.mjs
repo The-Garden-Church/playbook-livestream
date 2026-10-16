@@ -65,7 +65,7 @@ test("a side edge on the elbow is a cut at a joint, and moving off it clears the
 test("headroom coaching says which way to tilt", () => {
   const msg = (frame) => readiness(frame, null, scene).checks.find((c) => c.id === "headroom").message;
   assert.equal(msg({ cx: 1417, cy: 370, width: 1127 }), "Too much headroom. Tilt down until the eyes sit on the top third line.");
-  assert.equal(msg({ cx: 1417, cy: 644, width: 1300 }), "The top of his head is cut off. Tilt up until there's a little space above his head.");
+  assert.equal(msg({ cx: 1417, cy: 666, width: 1300 }), "The top of his head is cut off. Tilt up until there's a little space above his head.");
   assert.equal(msg({ cx: 1417, cy: 715, width: 2102 }), "There's a little room above his head, just right for a medium long shot.");
   assert.equal(msg({ cx: 1417, cy: 591, width: 2102 }), "Too much headroom. Tilt down until the top of his head sits just under the headroom line.");
 });

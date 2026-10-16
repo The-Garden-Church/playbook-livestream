@@ -65,7 +65,7 @@ export const SHOT_CALLS = [
     brief: "Somebody bumped the camera and the top of his head is cut off. Fix it and keep the medium shot.",
     shot: "MS",
     placement: "centered",
-    start: { cx: 1417, cy: 644, width: 1300 },
+    start: { cx: 1417, cy: 666, width: 1300 },
   },
   {
     id: "too-much-air",
