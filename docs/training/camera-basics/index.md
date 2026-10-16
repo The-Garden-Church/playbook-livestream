@@ -29,7 +29,8 @@ Work through these in order. Each one has a figure you can play with. Drag the c
 3. [ISO and gain](iso.md). The volume knob for light.
 4. [White balance and tint](white-balance.md). Making white look white.
 5. [Zoom and focus](focus-and-zoom.md). The two rings you'll spin all service long.
-6. [Dialing in your camera](dial-in.md). Putting it all together before the service starts.
+6. [Framing the shot](framing.md). Shot sizes, headroom, and moving smoothly while you're live.
+7. [Dialing in your camera](dial-in.md). Putting it all together before the service starts.
 
 !!! tip "Learn it, then try it"
     Read a lesson, then try the same control on a real camera with someone from the team. The Team Lead will go over all of this with you one-on-one, so bring your questions.
