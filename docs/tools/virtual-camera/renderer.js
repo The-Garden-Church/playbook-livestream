@@ -186,42 +186,23 @@ export function frameUniforms(camera, scene, scenario, timeS, width, height) {
   };
 }
 
-export function createRenderer(canvas, loaded) {
+export function createRenderer(canvas) {
   const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false });
   if (!gl) return null;
-  const { scene, width, height, layers } = loaded;
-  const n = layers.length;
   const blur = compile(gl, BLUR);
   const cameraProgram = compile(gl, CAMERA);
   const display = compile(gl, DISPLAY);
   gl.bindVertexArray(gl.createVertexArray());
-
-  const source = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D_ARRAY, source);
-  const packed = new Uint8Array(width * height * 4 * n);
-  layers.forEach((l, i) => packed.set(l, i * width * height * 4));
   gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.SRGB8_ALPHA8, width, height, n, 0, gl.RGBA, gl.UNSIGNED_BYTE, packed);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
 
-  const blurred = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D_ARRAY, blurred);
-  gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.SRGB8_ALPHA8, width, height, n);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  const blurTargets = layers.map((_, i) => {
-    const fb = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, blurred, 0, i);
-    return fb;
-  });
-
+  const arrayTexture = () => {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return tex;
+  };
   const target = (w, h) => {
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -235,28 +216,59 @@ export function createRenderer(canvas, loaded) {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
     return { tex, fb };
   };
-  const output = target(width, height);
   const hist = target(HIST_W, HIST_H);
   const histPixels = new Uint8Array(HIST_W * HIST_H * 4);
 
-  const ids = scene.layers.map((l) => l.id);
-  const wallIndex = scene.ledWall ? ids.indexOf(scene.ledWall.layer) : -1;
-  const motionIndex = ids.indexOf(scene.motion.layer);
-  let opticsKey = "";
+  function upload({ scene, width, height, layers }) {
+    const n = layers.length;
+    const source = arrayTexture();
+    const packed = new Uint8Array(width * height * 4 * n);
+    layers.forEach((l, i) => packed.set(l, i * width * height * 4));
+    gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.SRGB8_ALPHA8, width, height, n, 0, gl.RGBA, gl.UNSIGNED_BYTE, packed);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
+    const blurred = arrayTexture();
+    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.SRGB8_ALPHA8, width, height, n);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    const blurTargets = layers.map((_, i) => {
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, blurred, 0, i);
+      return fb;
+    });
+    const ids = scene.layers.map((l) => l.id);
+    return {
+      scene,
+      width,
+      height,
+      n,
+      source,
+      blurred,
+      blurTargets,
+      output: target(width, height),
+      wallIndex: scene.ledWall ? ids.indexOf(scene.ledWall.layer) : -1,
+      motionIndex: ids.indexOf(scene.motion.layer),
+      opticsKey: "",
+    };
+  }
 
-  function blurLayers(camera) {
+  const uploaded = new Map();
+  let current = null;
+
+  function blurLayers(g, camera) {
     const key = `${camera.fStop}|${camera.focusM}`;
-    if (key === opticsKey) return;
-    opticsKey = key;
+    if (key === g.opticsKey) return;
+    g.opticsKey = key;
+    const { scene, width, height } = g;
     gl.useProgram(blur.program);
     gl.viewport(0, 0, width, height);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D_ARRAY, source);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, g.source);
     gl.uniform1i(blur.uniforms.src, 0);
     gl.uniform2f(blur.uniforms.texel, 1 / width, 1 / height);
     scene.layers.forEach((layer, i) => {
       const r = blurRadiusPx(layer.distanceM, camera.focusM, camera.fStop, scene.lens.focalMm, scene.lens.sensorMm, width);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, blurTargets[i]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, g.blurTargets[i]);
       gl.uniform1f(blur.uniforms.layer, i);
       gl.uniform1f(blur.uniforms.radius, r);
       gl.uniform1f(blur.uniforms.lod, Math.max(0, Math.log2(r / 7)));
@@ -264,19 +276,23 @@ export function createRenderer(canvas, loaded) {
     });
   }
 
-  function render({ camera, scenario, overlays, timeS }) {
-    blurLayers(camera);
+  function render({ loaded, camera, scenario, overlays, timeS }) {
+    if (!uploaded.has(loaded)) uploaded.set(loaded, upload(loaded));
+    const g = uploaded.get(loaded);
+    current = g;
+    const { scene, width, height } = g;
+    blurLayers(g, camera);
     const u = frameUniforms(camera, scene, scenario, timeS, width, height);
     gl.useProgram(cameraProgram.program);
     const cu = cameraProgram.uniforms;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, output.fb);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, g.output.fb);
     gl.viewport(0, 0, width, height);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D_ARRAY, blurred);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, g.blurred);
     gl.uniform1i(cu.layers, 0);
-    gl.uniform1i(cu.layerCount, n);
-    gl.uniform1i(cu.wallIndex, wallIndex);
-    gl.uniform1i(cu.motionIndex, motionIndex);
+    gl.uniform1i(cu.layerCount, g.n);
+    gl.uniform1i(cu.wallIndex, g.wallIndex);
+    gl.uniform1i(cu.motionIndex, g.motionIndex);
     gl.uniform2fv(cu.motionOffset, u.motionOffset);
     gl.uniform2fv(cu.motionSpan, u.motionSpan);
     gl.uniform1f(cu.bandAmp, u.bandAmp);
@@ -294,7 +310,7 @@ export function createRenderer(canvas, loaded) {
     const du = display.uniforms;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.bindTexture(gl.TEXTURE_2D, output.tex);
+    gl.bindTexture(gl.TEXTURE_2D, g.output.tex);
     gl.uniform1i(du.image, 0);
     gl.uniform2f(du.srcSize, width, height);
     gl.uniform2f(du.dstSize, canvas.width, canvas.height);
@@ -308,6 +324,7 @@ export function createRenderer(canvas, loaded) {
   }
 
   function histogram() {
+    const { output, width, height } = current;
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, output.fb);
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, hist.fb);
     gl.blitFramebuffer(0, 0, width, height, 0, 0, HIST_W, HIST_H, gl.COLOR_BUFFER_BIT, gl.LINEAR);
@@ -321,5 +338,5 @@ export function createRenderer(canvas, loaded) {
     return bins;
   }
 
-  return { render, histogram, width, height };
+  return { render, histogram };
 }

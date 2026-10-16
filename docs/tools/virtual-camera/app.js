@@ -25,7 +25,7 @@ const { scene } = loaded;
 const standard = standardCamera(scene);
 const canvas = $("#view");
 canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
-const renderer = createRenderer(canvas, loaded);
+const renderer = createRenderer(canvas);
 if (!renderer) {
   canvas.hidden = true;
   $("#nogl").hidden = false;
@@ -268,7 +268,7 @@ function tick(now) {
   const frame = Math.floor(timeS * FPS);
   if (dirty || frame !== lastFrame) {
     dirty = false;
-    lastFrame = renderer.render({ camera: state.camera, scenario: currentScenario(), overlays: state.overlays, timeS });
+    lastFrame = renderer.render({ loaded, camera: state.camera, scenario: currentScenario(), overlays: state.overlays, timeS });
     if (state.overlays.histogram) drawHistogram(renderer.histogram());
   }
   requestAnimationFrame(tick);
