@@ -117,10 +117,11 @@ test("readiness coaches in plain sentences", () => {
 
 test("focus passes only near the lectern", () => {
   const focusAt = (focusM, fStop = 4) => readiness({ ...standard, focusM, fStop }, null, scene).checks.find((c) => c.id === "focus");
-  assert.equal(focusAt(8.5).pass, true);
-  assert.equal(focusAt(9.2).pass, false);
-  assert.equal(focusAt(14).message, "The speaker is soft because focus is set behind them. Turn focus closer, to the lectern.");
-  assert.equal(focusAt(6).message, "The speaker is soft because focus is set in front of them. Turn focus farther, to the lectern.");
+  assert.equal(focusAt(6.3).pass, true);
+  assert.equal(focusAt(6.5).pass, false);
+  assert.equal(focusAt(6.3, 2).pass, false);
+  assert.equal(focusAt(16).message, "The speaker is soft because focus is set behind them. Turn focus closer, to the lectern.");
+  assert.equal(focusAt(4).message, "The speaker is soft because focus is set in front of them. Turn focus farther, to the lectern.");
 });
 
 test("every scenario starts broken and has a reachable fix", () => {
@@ -176,14 +177,15 @@ test("explainers say what the setting is doing right now", () => {
   assert.equal(explain("fStop", standard, scene), "f/4: standard. Bright enough, and forgiving focus.");
   assert.equal(explain("wbK", { ...standard, wbK: 2500 }, scene), "2500 K: 1500 K below the room light, so the picture turns blue.");
   assert.equal(explain("shutterDeg", { ...standard, shutterDeg: 90 }, scene), "90°: one stop darker, choppy motion, and the LED wall bands.");
-  assert.equal(explain("focusM", { ...standard, focusM: 14 }, scene), "14 m: the LED wall is sharp and the speaker is soft.");
-  assert.equal(explain("focusM", standard, scene), "8.0 m: the speaker is sharp.");
+  assert.equal(explain("focusM", { ...standard, focusM: 16 }, scene), "16 m: the LED wall is sharp and the speaker is soft.");
+  assert.equal(explain("focusM", standard, scene), "6.0 m: the speaker is sharp.");
+  assert.equal(explain("focusM", { ...standard, focusM: 2 }, scene), "2.0 m: nothing in the shot is sharp. The speaker is at 6.0 m.");
 });
 
 test("parseScene orders layers back to front and rejects unknown ids", () => {
   assert.deepEqual(
     scene.layers.map((l) => l.id),
-    ["wall", "mid", "stage", "subject"],
+    ["wall", "mid", "stage", "subject", "lectern"],
   );
   assert.throws(() => parseScene({ ...scene, subject: "pastor" }), /names layer "pastor"/);
 });
