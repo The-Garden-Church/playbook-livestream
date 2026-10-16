@@ -5,7 +5,7 @@ export const DOF_COC_FRACTION = 1 / 1200;
 
 export const CONTROLS = {
   shutterDeg: { label: "Shutter", kind: "list", values: [45, 90, 172.8, 180, 270, 360], format: (v) => `${v}°` },
-  wbK: { label: "White balance", kind: "range", min: 2500, max: 8000, step: 100, format: (v) => `${v} K` },
+  wbK: { label: "White balance", short: "WB", kind: "range", min: 2500, max: 8000, step: 100, format: (v) => `${v} K` },
   tint: { label: "Tint", kind: "range", min: -30, max: 30, step: 1, format: (v) => (v > 0 ? `+${v}` : `${v}`) },
   fStop: { label: "Aperture", kind: "list", values: [2, 2.8, 4, 5.6, 8, 11, 16], format: (v) => `f/${v}` },
   iso: { label: "ISO", kind: "list", values: [100, 200, 400, 800, 1600, 3200, 6400], format: (v) => `ISO ${v}` },
@@ -32,13 +32,24 @@ export function parseScene(raw) {
     if (typeof layer.mask !== "string") throw new Error(`${where} layer "${layer.id}" needs a mask file or "remainder"`);
   }
   if (layers.filter((l) => l.mask === "remainder").length !== 1) throw new Error(`${where} needs exactly one layer with mask "remainder"`);
+  const conditions = raw.light?.conditions ?? [];
+  const light = conditions.find((c) => c.id === raw.light?.default);
+  if (!light) throw new Error(`${where} needs a "light" whose default is one of its conditions`);
   return {
     ...raw,
+    light: { ...light },
+    lightConditions: conditions.map((c) => ({ ...c })),
     layers,
     reference: { ...raw.reference },
     ledWall: raw.ledWall ?? null,
     subjectM: byId.get(raw.subject).distanceM,
   };
+}
+
+export function inLight(scene, lightId) {
+  const light = scene.lightConditions.find((c) => c.id === lightId);
+  if (!light) throw new Error(`The scene has no room light "${lightId}"`);
+  return { ...scene, light };
 }
 
 export function standardCamera(scene) {
@@ -138,6 +149,7 @@ export function stopWord(n) {
 const CHECKS = [
   {
     id: "shutter",
+    control: "shutterDeg",
     label: "Shutter",
     evaluate: (camera, { scene }) => {
       const standard = scene.reference.shutterDeg;
@@ -152,17 +164,20 @@ const CHECKS = [
   },
   {
     id: "whiteBalance",
+    control: "wbK",
     label: "White balance",
     evaluate: (camera, { scene }) => {
-      const diff = camera.wbK - scene.lightK;
+      const { lightK } = scene.light;
+      const diff = camera.wbK - lightK;
       if (Math.abs(diff) <= 300) return { pass: true, message: `White balance ${camera.wbK} K matches the room light, so white looks white.` };
       return diff > 0
-        ? { pass: false, message: `Faces look orange. Lower the white balance number toward ${scene.lightK} K.` }
-        : { pass: false, message: `Faces look blue. Raise the white balance number toward ${scene.lightK} K.` };
+        ? { pass: false, message: `Faces look orange. Lower the white balance number toward ${lightK} K.` }
+        : { pass: false, message: `Faces look blue. Raise the white balance number toward ${lightK} K.` };
     },
   },
   {
     id: "tint",
+    control: "tint",
     label: "Tint",
     evaluate: (camera) => {
       if (Math.abs(camera.tint) <= 3) return { pass: true, message: "Tint is close to 0, so skin isn't green or pink." };
@@ -190,6 +205,7 @@ const CHECKS = [
   },
   {
     id: "iso",
+    control: "iso",
     label: "ISO",
     evaluate: (camera) =>
       camera.iso <= 1600
@@ -198,6 +214,7 @@ const CHECKS = [
   },
   {
     id: "focus",
+    control: "focusM",
     label: "Focus",
     evaluate: (camera, { scene }) => {
       if (inDepthOfField(scene.subjectM, camera, scene.lens)) return { pass: true, message: "The speaker is sharp." };
@@ -225,6 +242,6 @@ export const SCENARIO_CHECKS = {
 export function readiness(camera, scenario, scene) {
   const ctx = { scene, scenario };
   const extra = (scenario?.checks ?? []).map((id) => SCENARIO_CHECKS[id]);
-  const checks = [...CHECKS, ...extra].map((c) => ({ id: c.id, label: c.label, ...c.evaluate(camera, ctx) }));
+  const checks = [...CHECKS, ...extra].map((c) => ({ id: c.id, label: c.label, control: c.control ?? null, ...c.evaluate(camera, ctx) }));
   return { ready: checks.every((c) => c.pass), checks };
 }

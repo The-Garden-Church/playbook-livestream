@@ -527,7 +527,7 @@ function set(name, value, from = rings[name].target) {
   run();
 }
 let drag = null;
-const PX_PER_STOP = 26;
+const PX_PER_STOP = 52;
 function screenScale() { const box = svg.getBoundingClientRect(); return ${WIDTH} / box.width; }
 for (const name in rings) {
   const ring = rings[name];
