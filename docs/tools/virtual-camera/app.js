@@ -29,6 +29,12 @@ if (!renderer) {
   canvas.hidden = true;
   $("#nogl").hidden = false;
 }
+canvas.addEventListener("webglcontextlost", () => {
+  console.error("virtual camera: WebGL context lost");
+  canvas.hidden = true;
+  $("#nogl").textContent = "The camera picture stopped. Refresh the page to start it again.";
+  $("#nogl").hidden = false;
+});
 
 const state = {
   camera: { ...standard },
