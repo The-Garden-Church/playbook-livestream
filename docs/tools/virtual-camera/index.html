@@ -38,7 +38,7 @@
       </section>
 
       <section class="panel" aria-label="Camera settings">
-        <div class="modes" role="tablist" aria-label="Mode">
+        <div class="modes segmented" role="tablist" aria-label="Mode">
           <button type="button" role="tab" data-mode="free" aria-selected="true">Free play</button>
           <button type="button" role="tab" data-mode="challenges" aria-selected="false">Challenges</button>
         </div>
@@ -47,6 +47,12 @@
           <ol class="scenario-list" id="scenario-list"></ol>
           <p class="hint" id="pick-hint">Pick a challenge. The camera starts with something wrong. Find it, fix it, then ask the director.</p>
           <div class="brief" id="brief" hidden></div>
+        </div>
+
+        <div class="room" role="group" aria-labelledby="room-label">
+          <div class="room-head"><span class="room-label" id="room-label">Room light</span><span class="room-lock" id="room-lock" hidden>Set by the challenge</span></div>
+          <div class="segmented" id="room-light"></div>
+          <p class="why" id="room-note"></p>
         </div>
 
         <div class="controls" id="controls"></div>

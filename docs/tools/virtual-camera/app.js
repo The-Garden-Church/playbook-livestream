@@ -1,6 +1,6 @@
 import { CONTROLS, CONTROL_ORDER, FPS, inLight, readiness, snap, standardCamera } from "./model.js";
 import { SCENARIOS, scenarioCamera, scenarioScene } from "./scenarios.js";
-import { explain } from "./explain.js";
+import { explain, explainLight } from "./explain.js";
 import { loadScene } from "./scene-loader.js";
 import { createRenderer, HIST_BINS } from "./renderer.js";
 
@@ -122,6 +122,19 @@ for (const tab of document.querySelectorAll("[data-mode]")) {
   });
 }
 
+for (const condition of loaded.scene.lightConditions) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.light = condition.id;
+  button.textContent = condition.label;
+  button.addEventListener("click", () => {
+    state.lightId = condition.id;
+    state.result = null;
+    update();
+  });
+  $("#room-light").append(button);
+}
+
 const list = $("#scenario-list");
 SCENARIOS.forEach((s, i) => {
   const li = document.createElement("li");
@@ -217,6 +230,13 @@ function update() {
   $("#histogram").hidden = !state.overlays.histogram;
   for (const tab of document.querySelectorAll("[data-mode]")) tab.setAttribute("aria-selected", String(tab.dataset.mode === state.mode));
   $("#challenges").hidden = state.mode !== "challenges";
+  const lightLocked = state.mode !== "free";
+  for (const button of document.querySelectorAll("[data-light]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.light === scene.light.id));
+    button.disabled = lightLocked;
+  }
+  $("#room-lock").hidden = !lightLocked;
+  $("#room-note").textContent = explainLight(scene);
   for (const btn of list.querySelectorAll("button")) {
     btn.classList.toggle("active", btn.dataset.scenario === state.scenarioId);
     btn.classList.toggle("completed", state.completed.has(btn.dataset.scenario));

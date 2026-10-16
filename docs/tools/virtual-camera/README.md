@@ -37,7 +37,7 @@ The team records in a gym with windows, so the room light changes with the weath
 | Cloudy | about 4600 K | Overcast daylight is blue. More of it comes through the windows and mixes with the 4000 K house lights, so the room gets cooler. |
 | Sunny | about 3600 K | Direct sun lands on the gym floor and walls and bounces back warm, so the room gets warmer. |
 
-The directions are what the team sees on real Sundays. The numbers are approximate.
+The directions are what the team sees on real Sundays. The numbers are approximate. Free play has a Room light switch, and two challenges change the weather partway through a service. Changing the room light never changes the camera, so you have to notice and fix the white balance yourself.
 
 ## Replacing the photo
 
