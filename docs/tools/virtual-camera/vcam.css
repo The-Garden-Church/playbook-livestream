@@ -393,17 +393,65 @@ input:focus-visible {
   position: relative;
 }
 
+.slider {
+  --thumb: 22px;
+}
+
 .slider input {
   display: block;
   width: 100%;
-  margin: 6px 0 4px;
-  accent-color: var(--gold);
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(var(--gold), var(--gold)) 0 / var(--fill, 0%) 100% no-repeat, var(--surface-2);
+}
+
+.slider input::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+
+.slider input::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--gold);
+}
+
+.slider input::-webkit-slider-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc(3px - var(--thumb) / 2);
+  border: 0;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider input::-moz-range-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  border: 0;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .slider .mark {
   position: absolute;
   top: 100%;
-  left: calc(var(--at) * 0.96 + 2%);
+  left: calc(var(--at) * (100% - var(--thumb)) + var(--thumb) / 2);
   transform: translateX(-50%);
   margin-top: -2px;
   font-size: 10.5px;
@@ -753,5 +801,22 @@ input:focus-visible {
 
   .checks li.pass {
     display: none;
+  }
+
+  .slider {
+    --thumb: 30px;
+  }
+
+  .slider input {
+    height: 44px;
+    margin: -8px 0 -6px;
+  }
+
+  .control {
+    padding: 2px 12px 6px;
+  }
+
+  .control:has(.mark) .why {
+    margin-top: 12px;
   }
 }
