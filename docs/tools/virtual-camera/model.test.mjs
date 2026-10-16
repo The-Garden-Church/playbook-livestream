@@ -264,7 +264,12 @@ test("explainers say what the setting is doing right now", () => {
     explain("shutterDeg", { ...standard, shutterDeg: 90 }, scene),
     "90°: one stop darker, the speaker's gestures freeze mid-move, so motion looks choppy, and the LED wall bands.",
   );
-  assert.equal(explain("focusM", { ...standard, focusM: 11 }, scene), "11 m: the LED wall and the curtains and truss are sharp and the speaker is soft.");
+  assert.equal(explain("focusM", { ...standard, focusM: 11 }, scene), "11 m: focus is on the LED wall and the curtains and truss, so the speaker is soft.");
+  assert.equal(explain("focusM", { ...standard, focusM: 9 }, scene), "9.0 m: focus is on the curtains and truss, so the speaker is soft.");
+  assert.equal(
+    explain("focusM", { ...standardCamera(closeScene), focusM: 13.2 }, closeScene),
+    "13 m: nothing in the shot is sharp. The speaker is at 14 m.",
+  );
   assert.equal(explain("focusM", standard, scene), "7.0 m: the speaker is sharp.");
   assert.equal(explain("focusM", { ...standard, focusM: 2 }, scene), "2.0 m: nothing in the shot is sharp. The speaker is at 7.0 m.");
 });

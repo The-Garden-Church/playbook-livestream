@@ -59,9 +59,9 @@ const EXPLAINERS = {
     const label = CONTROLS.focusM.format(camera.focusM);
     const subject = scene.layers.find((l) => l.id === scene.subject);
     if (inDepthOfField(subject.distanceM, camera, scene.lens)) return `${label}: ${subject.label} is sharp.`;
-    const sharp = scene.layers.filter((l) => inDepthOfField(l.distanceM, camera, scene.lens));
+    const sharp = scene.layers.filter((l) => !l.partOf && inDepthOfField(l.distanceM, camera, scene.lens));
     if (sharp.length === 0) return `${label}: nothing in the shot is sharp. ${capitalize(subject.label)} is at ${CONTROLS.focusM.format(subject.distanceM)}.`;
-    return `${label}: ${sharp.map((l) => l.label).join(" and ")} ${sharp.length > 1 ? "are" : "is"} sharp and ${subject.label} is soft.`;
+    return `${label}: focus is on ${sharp.map((l) => l.label).join(" and ")}, so ${subject.label} is soft.`;
   },
 };
 
