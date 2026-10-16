@@ -5,7 +5,7 @@ export const DOF_COC_FRACTION = 1 / 1200;
 
 export const CONTROLS = {
   shutterDeg: { label: "Shutter", kind: "list", values: [45, 90, 172.8, 180, 270, 360], format: (v) => `${v}°` },
-  wbK: { label: "White balance", kind: "range", min: 2500, max: 8000, step: 100, format: (v) => `${v} K` },
+  wbK: { label: "White balance", short: "WB", kind: "range", min: 2500, max: 8000, step: 100, format: (v) => `${v} K` },
   tint: { label: "Tint", kind: "range", min: -30, max: 30, step: 1, format: (v) => (v > 0 ? `+${v}` : `${v}`) },
   fStop: { label: "Aperture", kind: "list", values: [2, 2.8, 4, 5.6, 8, 11, 16], format: (v) => `f/${v}` },
   iso: { label: "ISO", kind: "list", values: [100, 200, 400, 800, 1600, 3200, 6400], format: (v) => `ISO ${v}` },
@@ -149,6 +149,7 @@ export function stopWord(n) {
 const CHECKS = [
   {
     id: "shutter",
+    control: "shutterDeg",
     label: "Shutter",
     evaluate: (camera, { scene }) => {
       const standard = scene.reference.shutterDeg;
@@ -163,6 +164,7 @@ const CHECKS = [
   },
   {
     id: "whiteBalance",
+    control: "wbK",
     label: "White balance",
     evaluate: (camera, { scene }) => {
       const { lightK } = scene.light;
@@ -175,6 +177,7 @@ const CHECKS = [
   },
   {
     id: "tint",
+    control: "tint",
     label: "Tint",
     evaluate: (camera) => {
       if (Math.abs(camera.tint) <= 3) return { pass: true, message: "Tint is close to 0, so skin isn't green or pink." };
@@ -202,6 +205,7 @@ const CHECKS = [
   },
   {
     id: "iso",
+    control: "iso",
     label: "ISO",
     evaluate: (camera) =>
       camera.iso <= 1600
@@ -210,6 +214,7 @@ const CHECKS = [
   },
   {
     id: "focus",
+    control: "focusM",
     label: "Focus",
     evaluate: (camera, { scene }) => {
       if (inDepthOfField(scene.subjectM, camera, scene.lens)) return { pass: true, message: "The speaker is sharp." };
@@ -237,6 +242,6 @@ export const SCENARIO_CHECKS = {
 export function readiness(camera, scenario, scene) {
   const ctx = { scene, scenario };
   const extra = (scenario?.checks ?? []).map((id) => SCENARIO_CHECKS[id]);
-  const checks = [...CHECKS, ...extra].map((c) => ({ id: c.id, label: c.label, ...c.evaluate(camera, ctx) }));
+  const checks = [...CHECKS, ...extra].map((c) => ({ id: c.id, label: c.label, control: c.control ?? null, ...c.evaluate(camera, ctx) }));
   return { ready: checks.every((c) => c.pass), checks };
 }

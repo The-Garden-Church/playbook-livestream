@@ -153,6 +153,7 @@ test("the weather changes the room light, so the right white balance moves with 
   assert.deepEqual(wbCheck(standard, cloudy), {
     id: "whiteBalance",
     label: "White balance",
+    control: "wbK",
     pass: false,
     message: "Faces look blue. Raise the white balance number toward 4600 K.",
   });
@@ -204,6 +205,21 @@ test("the lighting change rewards aperture before ISO", () => {
   );
   const start = readiness(scenarioCamera(scenario, scene), scenario, scene);
   assert.equal(start.checks.find((c) => c.id === "exposure").message, "The picture is two stops too dark. Open the aperture first, then raise ISO if you still need to.");
+});
+
+test("each failing check names the control to fix, and brightness names none", () => {
+  const { checks } = readiness({ ...standard, shutterDeg: 90, wbK: 5600, tint: 10, iso: 6400, focusM: 2 }, null, scene);
+  assert.deepEqual(
+    checks.filter((c) => !c.pass).map((c) => [c.id, c.control]),
+    [
+      ["shutter", "shutterDeg"],
+      ["whiteBalance", "wbK"],
+      ["tint", "tint"],
+      ["exposure", null],
+      ["iso", "iso"],
+      ["focus", "focusM"],
+    ],
+  );
 });
 
 test("a wrong shutter points at the shutter before brightness", () => {

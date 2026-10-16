@@ -37,6 +37,7 @@ const state = {
   camera: standardCamera(loaded.scene),
   mode: "free",
   lightId: loaded.scene.light.id,
+  selected: CONTROL_ORDER[0],
   scenarioId: null,
   result: null,
   completed: new Set(),
@@ -81,6 +82,7 @@ for (const key of CONTROL_ORDER) {
   const kind = SLIDER[c.kind];
   const row = document.createElement("div");
   row.className = "control";
+  row.id = `row-${key}`;
   row.innerHTML = `<div class="control-head"><label for="ctl-${key}">${c.label}</label><output id="out-${key}"></output></div>
     <div class="slider"><input type="range" id="ctl-${key}" aria-describedby="why-${key}"></div>
     <p class="why" id="why-${key}"></p>`;
@@ -99,7 +101,17 @@ for (const key of CONTROL_ORDER) {
     row.querySelector(".slider").append(mark);
   }
   $("#controls").append(row);
-  controlEls[key] = { input, out: row.querySelector("output"), why: row.querySelector(".why"), kind, c };
+  const tile = document.createElement("button");
+  tile.type = "button";
+  tile.dataset.tile = key;
+  tile.setAttribute("aria-controls", row.id);
+  tile.innerHTML = `<span class="tile-label">${c.short ?? c.label}</span><span class="tile-value"></span>`;
+  tile.addEventListener("click", () => {
+    state.selected = key;
+    update();
+  });
+  $("#tiles").append(tile);
+  controlEls[key] = { input, out: row.querySelector("output"), why: row.querySelector(".why"), row, tile, tileValue: tile.querySelector(".tile-value"), kind, c };
 }
 
 for (const button of document.querySelectorAll("[data-tool]")) {
@@ -207,11 +219,17 @@ function update() {
   const mark = $("#focus-mark");
   mark.style.setProperty("--at", `${focusToPos(scene.subjectM) / 10}%`);
   mark.textContent = `Speaker ${CONTROLS.focusM.format(scene.subjectM)}`;
+  const failing = new Set(state.result?.checks.filter((c) => !c.pass).map((c) => c.control));
   for (const [key, el] of Object.entries(controlEls)) {
     const pos = el.kind.toPos(el.c, camera[key]);
     if (Number(el.input.value) !== pos) el.input.value = pos;
     const label = el.c.format(camera[key]);
     el.out.textContent = label;
+    el.tileValue.textContent = label;
+    el.tile.setAttribute("aria-label", `${el.c.label} ${label}`);
+    el.tile.setAttribute("aria-pressed", String(key === state.selected));
+    el.tile.classList.toggle("warn", failing.has(key));
+    el.row.classList.toggle("selected", key === state.selected);
     el.input.setAttribute("aria-valuetext", label);
     el.why.textContent = explain(key, camera, scene);
   }

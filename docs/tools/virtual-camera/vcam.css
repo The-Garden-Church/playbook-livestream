@@ -357,6 +357,10 @@ input:focus-visible {
   gap: 10px;
 }
 
+.tiles {
+  display: none;
+}
+
 .control {
   padding: 10px 12px 8px;
   background: var(--surface);
@@ -574,5 +578,105 @@ input:focus-visible {
 
   .scenario-list {
     grid-template-columns: 1fr;
+    margin: 0;
+  }
+
+  .vcam {
+    gap: 10px;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modes,
+  .room,
+  .hint,
+  .brief {
+    margin: 0;
+  }
+
+  #challenges:not([hidden]) {
+    display: grid;
+    gap: 10px;
+  }
+
+  .room {
+    order: 1;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .tiles button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 0;
+    padding: 6px 10px;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .tile-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+  }
+
+  .tile-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .tiles button.warn {
+    border-color: rgba(255, 138, 122, 0.7);
+    background: rgba(255, 138, 122, 0.12);
+  }
+
+  .tiles button[aria-pressed="true"] {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .tiles button[aria-pressed="true"] .tile-label,
+  .tiles button[aria-pressed="true"] .tile-value {
+    color: #121212;
+  }
+
+  .tiles button.warn[aria-pressed="true"] {
+    border-color: var(--bad);
+  }
+
+  .control:not(.selected) {
+    display: none;
+  }
+
+  .control {
+    padding: 4px 12px 8px;
+  }
+
+  .control-head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .actions button {
+    flex: 1 1 auto;
   }
 }
