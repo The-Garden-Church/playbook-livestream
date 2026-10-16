@@ -48,16 +48,19 @@ const posToFocus = (p) => CONTROLS.focusM.min * (CONTROLS.focusM.max / CONTROLS.
 
 const SLIDER = {
   list: {
+    detents: true,
     attrs: (c) => ({ min: 0, max: c.values.length - 1, step: 1 }),
     toPos: (c, v) => c.values.indexOf(v),
     fromPos: (c, p) => c.values[p],
   },
   range: {
+    detents: true,
     attrs: (c) => ({ min: c.min, max: c.max, step: c.step }),
     toPos: (c, v) => v,
     fromPos: (c, p, key) => snap(key, p),
   },
   log: {
+    detents: false,
     attrs: () => ({ min: 0, max: 1000, step: 1 }),
     toPos: (c, v) => focusToPos(v),
     fromPos: (c, p) => posToFocus(p),
@@ -75,7 +78,12 @@ for (const key of CONTROL_ORDER) {
     <p class="why" id="why-${key}"></p>`;
   const input = row.querySelector("input");
   Object.entries(kind.attrs(c)).forEach(([k, v]) => input.setAttribute(k, v));
-  input.addEventListener("input", () => setCamera({ [key]: kind.fromPos(c, Number(input.value), key) }));
+  input.addEventListener("input", () => {
+    const value = kind.fromPos(c, Number(input.value), key);
+    const clicked = kind.detents && value !== state.camera[key];
+    setCamera({ [key]: value });
+    if (clicked) window.detent();
+  });
   if (key === "focusM") {
     const mark = document.createElement("span");
     mark.className = "mark";
