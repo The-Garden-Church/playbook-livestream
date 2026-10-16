@@ -680,3 +680,78 @@ input:focus-visible {
     flex: 1 1 auto;
   }
 }
+
+@media (max-width: 760px) {
+  .vcam,
+  .panel,
+  #challenges:not([hidden]) {
+    gap: 8px;
+  }
+
+  .finder {
+    padding: 4px 2px 8px;
+  }
+
+  .status {
+    display: none;
+  }
+
+  .screen {
+    border-radius: 6px;
+  }
+
+  .tiles button {
+    padding: 4px 10px;
+  }
+
+  .room {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .room-head {
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0;
+  }
+
+  .room .segmented {
+    flex: 1;
+  }
+
+  .room .why {
+    display: none;
+  }
+
+  .vcam {
+    padding-bottom: 2px;
+  }
+
+  .finder {
+    padding-bottom: 4px;
+  }
+
+  .modes button,
+  .segmented button {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .tiles {
+    gap: 4px;
+  }
+
+  .tiles button {
+    gap: 0;
+    padding: 3px 10px;
+  }
+
+  .tile-value {
+    font-size: 13px;
+  }
+
+  .checks li.pass {
+    display: none;
+  }
+}

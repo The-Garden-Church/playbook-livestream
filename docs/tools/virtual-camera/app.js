@@ -225,7 +225,7 @@ function update() {
     if (Number(el.input.value) !== pos) el.input.value = pos;
     const label = el.c.format(camera[key]);
     el.out.textContent = label;
-    el.tileValue.textContent = label;
+    el.tileValue.textContent = label.replace(/^ISO /, "");
     el.tile.setAttribute("aria-label", `${el.c.label} ${label}`);
     el.tile.setAttribute("aria-pressed", String(key === state.selected));
     el.tile.classList.toggle("warn", failing.has(key));
