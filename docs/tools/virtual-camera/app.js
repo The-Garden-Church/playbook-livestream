@@ -1,5 +1,5 @@
-import { CONTROLS, CONTROL_ORDER, FPS, readiness, snap, standardCamera } from "./model.js";
-import { SCENARIOS, scenarioCamera } from "./scenarios.js";
+import { CONTROLS, CONTROL_ORDER, FPS, inLight, readiness, snap, standardCamera } from "./model.js";
+import { SCENARIOS, scenarioCamera, scenarioScene } from "./scenarios.js";
 import { explain } from "./explain.js";
 import { loadScene } from "./scene-loader.js";
 import { createRenderer, HIST_BINS } from "./renderer.js";
@@ -36,12 +36,20 @@ canvas.addEventListener("webglcontextlost", () => {
 const state = {
   camera: standardCamera(loaded.scene),
   mode: "free",
+  lightId: loaded.scene.light.id,
   scenarioId: null,
   result: null,
   completed: new Set(),
   overlays: { zebras: false, falseColor: false, peaking: false, histogram: false },
 };
 const currentScenario = () => SCENARIOS.find((s) => s.id === state.scenarioId) ?? null;
+
+function roomScene() {
+  const scenario = currentScenario();
+  if (scenario) return scenarioScene(scenario, loaded.scene);
+  return state.mode === "free" ? inLight(loaded.scene, state.lightId) : loaded.scene;
+}
+let scene = roomScene();
 
 const focusToPos = (m) => Math.round((1000 * Math.log(m / CONTROLS.focusM.min)) / Math.log(CONTROLS.focusM.max / CONTROLS.focusM.min));
 const posToFocus = (p) => CONTROLS.focusM.min * (CONTROLS.focusM.max / CONTROLS.focusM.min) ** (p / 1000);
@@ -138,7 +146,7 @@ function setCamera(patch) {
 
 $("#reset").addEventListener("click", () => setCamera(standardCamera(loaded.scene)));
 $("#check").addEventListener("click", () => {
-  state.result = readiness(state.camera, currentScenario(), loaded.scene);
+  state.result = readiness(state.camera, currentScenario(), scene);
   if (state.result.ready && state.scenarioId) state.completed.add(state.scenarioId);
   update();
   $("#results").scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -180,7 +188,7 @@ function renderResults() {
 
 function update() {
   const { camera } = state;
-  const { scene } = loaded;
+  scene = roomScene();
   canvas.setAttribute("aria-label", scene.alt);
   canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
   const mark = $("#focus-mark");
@@ -278,7 +286,7 @@ function tick(now) {
   const frame = Math.floor(timeS * FPS);
   if (dirty || frame !== lastFrame) {
     dirty = false;
-    lastFrame = renderer.render({ loaded, camera: state.camera, scenario: currentScenario(), overlays: state.overlays, timeS });
+    lastFrame = renderer.render({ loaded, scene, camera: state.camera, scenario: currentScenario(), overlays: state.overlays, timeS });
     if (state.overlays.histogram) drawHistogram(renderer.histogram());
   }
   requestAnimationFrame(tick);

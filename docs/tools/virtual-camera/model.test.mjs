@@ -10,12 +10,13 @@ import {
   ledBanding,
   readiness,
   parseScene,
+  inLight,
   standardCamera,
   snap,
   stopWord,
 } from "./model.js";
-import { SCENARIOS, scenarioCamera } from "./scenarios.js";
-import { explain } from "./explain.js";
+import { SCENARIOS, scenarioCamera, scenarioScene } from "./scenarios.js";
+import { explain, explainLight } from "./explain.js";
 import { frameUniforms } from "./renderer.js";
 
 const rawScene = JSON.parse(readFileSync(new URL("./scene/scene.json", import.meta.url)));
@@ -127,17 +128,58 @@ test("focus passes only near the speaker", () => {
 });
 
 test("every scenario starts broken and has a reachable fix", () => {
-  const fixes = { "lighting-change": { fStop: 2, iso: 800 } };
+  const fixes = {
+    "lighting-change": { fStop: 2, iso: 800 },
+    "sun-came-out": { wbK: 3600 },
+    "clouds-rolled-in": { wbK: 4600 },
+  };
   assert.deepEqual(
     SCENARIOS.map((s) => s.id),
-    ["auto", "bumped-shutter", "lighting-change", "grainy", "soft", "everything"],
+    ["auto", "bumped-shutter", "lighting-change", "grainy", "soft", "sun-came-out", "clouds-rolled-in", "everything"],
   );
   for (const scenario of SCENARIOS) {
-    const failing = readiness(scenarioCamera(scenario, scene), scenario, scene).checks.filter((c) => !c.pass);
+    const lit = scenarioScene(scenario, scene);
+    const failing = readiness(scenarioCamera(scenario, lit), scenario, lit).checks.filter((c) => !c.pass);
     assert.ok(failing.length > 0, `${scenario.id} start state passes every check`);
     const fixed = { ...standard, ...fixes[scenario.id] };
-    assert.equal(readiness(fixed, scenario, scene).ready, true, `${scenario.id} fix does not pass`);
+    assert.equal(readiness(fixed, scenario, lit).ready, true, `${scenario.id} fix does not pass`);
   }
+});
+
+test("the weather changes the room light, so the right white balance moves with it", () => {
+  const cloudy = inLight(scene, "cloudy");
+  const sunny = inLight(scene, "sunny");
+  const wbCheck = (camera, lit) => readiness(camera, null, lit).checks.find((c) => c.id === "whiteBalance");
+  assert.deepEqual(wbCheck(standard, cloudy), {
+    id: "whiteBalance",
+    label: "White balance",
+    pass: false,
+    message: "Faces look blue. Raise the white balance number toward 4600 K.",
+  });
+  assert.equal(wbCheck(standard, sunny).message, "Faces look orange. Lower the white balance number toward 3600 K.");
+  assert.equal(wbCheck({ ...standard, wbK: 4600 }, cloudy).message, "White balance 4600 K matches the room light, so white looks white.");
+  assert.equal(wbCheck({ ...standard, wbK: 3600 }, sunny).pass, true);
+  assert.equal(readiness({ ...standard, wbK: 4600 }, null, cloudy).ready, true);
+});
+
+test("the white balance explainer compares against the current room light", () => {
+  assert.equal(explain("wbK", standard, inLight(scene, "cloudy")), "4000 K: 600 K below the room light, so the picture turns blue.");
+  assert.equal(explain("wbK", standard, inLight(scene, "sunny")), "4000 K: 400 K above the room light, so the picture turns orange.");
+  assert.equal(explain("wbK", { ...standard, wbK: 4600 }, inLight(scene, "cloudy")), "4600 K: matches the room light, so white looks white.");
+  assert.equal(explain("wbK", { ...standard, wbK: 3800 }, inLight(scene, "sunny")), "3800 K: 200 K above the room light, a touch warmer.");
+});
+
+test("the room light line says what the weather did", () => {
+  assert.equal(explainLight(scene), "Typical: House lights with a little daylight from the windows. The room is about 4000 K.");
+  assert.equal(explainLight(inLight(scene, "cloudy")), "Cloudy: Blue daylight from the windows. The room is about 4600 K.");
+  assert.equal(explainLight(inLight(scene, "sunny")), "Sunny: Sun bouncing off the warm gym floor and walls. The room is about 3600 K.");
+});
+
+test("the viewfinder white balance follows the room light", () => {
+  const wbAt = (wbK, lightId) => frameUniforms({ ...standard, wbK }, inLight(scene, lightId), null, 0).wb;
+  wbAt(4600, "cloudy").forEach((g) => close(g, 1));
+  [0.889, 1.008, 1.244].forEach((g, i) => close(wbAt(4000, "cloudy")[i], g, 0.001));
+  [1.098, 0.989, 0.821].forEach((g, i) => close(wbAt(4000, "sunny")[i], g, 0.001));
 });
 
 test("the standard settings come from the scene and brightness is counted from them", () => {
@@ -203,6 +245,8 @@ test("the scene loads with layers back to front and rejects unknown ids", () => 
     ["wall", "back", "speaker"],
   );
   assert.throws(() => parseScene({ ...rawScene, subject: "pastor" }), /scene.json names layer "pastor"/);
+  assert.throws(() => parseScene({ ...rawScene, light: { ...rawScene.light, default: "foggy" } }), /needs a "light" whose default is one of its conditions/);
+  assert.throws(() => inLight(scene, "foggy"), /no room light "foggy"/);
   assert.throws(() => parseScene({ ...rawScene, layers: [...rawScene.layers, { id: "x", distanceM: 3, mask: { rects: [] } }] }), /layer "x" needs a mask file or "remainder"/);
 });
 

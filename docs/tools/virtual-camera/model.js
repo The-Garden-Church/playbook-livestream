@@ -32,13 +32,24 @@ export function parseScene(raw) {
     if (typeof layer.mask !== "string") throw new Error(`${where} layer "${layer.id}" needs a mask file or "remainder"`);
   }
   if (layers.filter((l) => l.mask === "remainder").length !== 1) throw new Error(`${where} needs exactly one layer with mask "remainder"`);
+  const conditions = raw.light?.conditions ?? [];
+  const light = conditions.find((c) => c.id === raw.light?.default);
+  if (!light) throw new Error(`${where} needs a "light" whose default is one of its conditions`);
   return {
     ...raw,
+    light: { ...light },
+    lightConditions: conditions.map((c) => ({ ...c })),
     layers,
     reference: { ...raw.reference },
     ledWall: raw.ledWall ?? null,
     subjectM: byId.get(raw.subject).distanceM,
   };
+}
+
+export function inLight(scene, lightId) {
+  const light = scene.lightConditions.find((c) => c.id === lightId);
+  if (!light) throw new Error(`The scene has no room light "${lightId}"`);
+  return { ...scene, light };
 }
 
 export function standardCamera(scene) {
@@ -154,11 +165,12 @@ const CHECKS = [
     id: "whiteBalance",
     label: "White balance",
     evaluate: (camera, { scene }) => {
-      const diff = camera.wbK - scene.lightK;
+      const { lightK } = scene.light;
+      const diff = camera.wbK - lightK;
       if (Math.abs(diff) <= 300) return { pass: true, message: `White balance ${camera.wbK} K matches the room light, so white looks white.` };
       return diff > 0
-        ? { pass: false, message: `Faces look orange. Lower the white balance number toward ${scene.lightK} K.` }
-        : { pass: false, message: `Faces look blue. Raise the white balance number toward ${scene.lightK} K.` };
+        ? { pass: false, message: `Faces look orange. Lower the white balance number toward ${lightK} K.` }
+        : { pass: false, message: `Faces look blue. Raise the white balance number toward ${lightK} K.` };
     },
   },
   {

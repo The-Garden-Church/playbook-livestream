@@ -8,7 +8,14 @@
     "wbK": 4000,
     "tint": 0
   },
-  "lightK": 4000,
+  "light": {
+    "default": "typical",
+    "conditions": [
+      { "id": "typical", "label": "Typical", "lightK": 4000, "note": "House lights with a little daylight from the windows." },
+      { "id": "cloudy", "label": "Cloudy", "lightK": 4600, "note": "Blue daylight from the windows." },
+      { "id": "sunny", "label": "Sunny", "lightK": 3600, "note": "Sun bouncing off the warm gym floor and walls." }
+    ]
+  },
   "lens": {
     "focalMm": 55,
     "sensorMm": 18.96
