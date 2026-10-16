@@ -456,7 +456,7 @@ const body =
   STYLE +
   `<div class="sh">` +
   k.plateHtml({
-    fig: "Fig 1",
+    fig: "Fig 2",
     title: "Shutter angle",
     hint: "Drag the dial or use arrow keys",
     readout: readoutOf(ANGLES[START]),
