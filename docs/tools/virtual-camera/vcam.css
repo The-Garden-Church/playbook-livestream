@@ -113,6 +113,10 @@ input:focus-visible {
   color: var(--text-soft);
 }
 
+.tools .short {
+  display: none;
+}
+
 .tools {
   display: flex;
   flex-wrap: wrap;
@@ -467,6 +471,38 @@ input:focus-visible {
       "director";
     grid-template-rows: auto;
     gap: 14px;
+  }
+
+  .finder {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 -2px;
+    padding: 8px 2px 10px;
+    background: var(--bg);
+    box-shadow: 0 10px 12px -10px rgba(0, 0, 0, 0.9);
+  }
+
+  .tools {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .tools button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 2px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .tools .long {
+    display: none;
+  }
+
+  .tools .short {
+    display: inline;
   }
 
   .status {
