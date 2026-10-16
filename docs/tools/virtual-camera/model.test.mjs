@@ -16,6 +16,7 @@ import {
 } from "./model.js";
 import { SCENARIOS, scenarioCamera } from "./scenarios.js";
 import { explain } from "./explain.js";
+import { frameUniforms } from "./renderer.js";
 
 const rawScene = JSON.parse(readFileSync(new URL("./scene/scene.json", import.meta.url)));
 const scene = parseScene(rawScene);
@@ -203,4 +204,12 @@ test("the scene loads with layers back to front and rejects unknown ids", () => 
   );
   assert.throws(() => parseScene({ ...rawScene, subject: "pastor" }), /scene.json names layer "pastor"/);
   assert.throws(() => parseScene({ ...rawScene, layers: [...rawScene.layers, { id: "x", distanceM: 3, mask: { rects: [] } }] }), /layer "x" needs a mask file or "remainder"/);
+});
+
+test("the viewfinder lifts faint LED bands so 172.8° is visible but still the faintest", () => {
+  const bandAt = (shutterDeg) => frameUniforms({ ...standard, shutterDeg }, scene, null, 0).bandAmp;
+  close(bandAt(172.8), 0.148, 1e-3);
+  close(bandAt(90), 0.763, 1e-3);
+  close(bandAt(45), 0.939, 1e-3);
+  assert.equal(bandAt(180), 0);
 });
