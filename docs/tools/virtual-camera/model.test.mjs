@@ -24,14 +24,14 @@ const close = (actual, expected, eps = 1e-6) => assert.ok(Math.abs(actual - expe
 
 test("exposure counts stops the way the lessons do", () => {
   assert.equal(exposureStops(standard, ref), 0);
-  assert.equal(exposureStops({ ...standard, fStop: 2.8 }, ref), 1);
-  assert.equal(exposureStops({ ...standard, fStop: 2 }, ref), 2);
-  assert.equal(exposureStops({ ...standard, fStop: 11 }, ref), -3);
+  assert.equal(exposureStops({ ...standard, fStop: 2 }, ref), 1);
+  assert.equal(exposureStops({ ...standard, fStop: 4 }, ref), -1);
+  assert.equal(exposureStops({ ...standard, fStop: 11 }, ref), -4);
   assert.equal(exposureStops({ ...standard, iso: 1600 }, ref), 2);
   assert.equal(exposureStops({ ...standard, shutterDeg: 360 }, ref), 1);
   assert.equal(exposureStops({ ...standard, shutterDeg: 90 }, ref), -1);
   close(exposureStops({ ...standard, shutterDeg: 172.8 }, ref), -0.0589, 1e-4);
-  assert.equal(exposureStops({ ...standard, iso: 6400, fStop: 11 }, ref), 1);
+  assert.equal(exposureStops({ ...standard, iso: 6400, fStop: 11 }, ref), 0);
 });
 
 test("white balance gains are neutral when the camera matches the light", () => {
@@ -69,10 +69,10 @@ test("noise grows with ISO", () => {
 
 test("thin lens blur is zero at the focus distance and grows with aperture", () => {
   const { focalMm, sensorMm } = scene.lens;
-  close(blurRadiusPx(8, 8, 4, focalMm, sensorMm, 1280), 0);
-  close(blurRadiusPx(14, 8, 4, focalMm, sensorMm, 1280), 2.4, 0.05);
-  close(blurRadiusPx(14, 8, 2, focalMm, sensorMm, 1280), 4.9, 0.05);
-  close(blurRadiusPx(14, 8, 16, focalMm, sensorMm, 1280), 0.61, 0.01);
+  close(blurRadiusPx(7, 7, 2.8, focalMm, sensorMm, 1280), 0);
+  close(blurRadiusPx(10, 7, 2.8, focalMm, sensorMm, 1280), 1.575, 0.001);
+  close(blurRadiusPx(10, 7, 2, focalMm, sensorMm, 1280), 2.205, 0.001);
+  close(blurRadiusPx(10, 7, 16, focalMm, sensorMm, 1280), 0.276, 0.001);
 });
 
 test("motion blur is the distance moved while the shutter is open", () => {
@@ -112,14 +112,14 @@ test("readiness coaches in plain sentences", () => {
   const byId = Object.fromEntries(checks.map((c) => [c.id, c]));
   assert.equal(byId.whiteBalance.message, "Faces look orange. Lower the white balance number toward 4000 K.");
   assert.equal(byId.iso.message, "ISO 3200 is adding a lot of grain. Bring it down to 1600 or lower and open the aperture instead.");
-  assert.equal(byId.exposure.message, "The picture is one stop too dark. Open the aperture first, then raise ISO if you still need to.");
+  assert.equal(byId.exposure.message, "The picture is two stops too dark. Open the aperture first, then raise ISO if you still need to.");
 });
 
 test("focus passes only near the lectern", () => {
-  const focusAt = (focusM, fStop = 4) => readiness({ ...standard, focusM, fStop }, null, scene).checks.find((c) => c.id === "focus");
-  assert.equal(focusAt(6.3).pass, true);
-  assert.equal(focusAt(6.5).pass, false);
-  assert.equal(focusAt(6.3, 2).pass, false);
+  const focusAt = (focusM, fStop = 2.8) => readiness({ ...standard, focusM, fStop }, null, scene).checks.find((c) => c.id === "focus");
+  assert.equal(focusAt(7.5).pass, true);
+  assert.equal(focusAt(8).pass, false);
+  assert.equal(focusAt(7.7, 2).pass, false);
   assert.equal(focusAt(16).message, "The speaker is soft because focus is set behind them. Turn focus closer, to the lectern.");
   assert.equal(focusAt(4).message, "The speaker is soft because focus is set in front of them. Turn focus farther, to the lectern.");
 });
@@ -149,7 +149,7 @@ test("the lighting change rewards aperture before ISO", () => {
     ["apertureFirst"],
   );
   const start = readiness(scenarioCamera(scenario, standard, scene), scenario, scene);
-  assert.equal(start.checks.find((c) => c.id === "exposure").message, "The picture is three stops too dark. Open the aperture first, then raise ISO if you still need to.");
+  assert.equal(start.checks.find((c) => c.id === "exposure").message, "The picture is two stops too dark. Open the aperture first, then raise ISO if you still need to.");
 });
 
 test("a wrong shutter points at the shutter before brightness", () => {
@@ -173,19 +173,19 @@ test("stop counts read naturally", () => {
 });
 
 test("explainers say what the setting is doing right now", () => {
-  assert.equal(explain("fStop", { ...standard, fStop: 2.8 }, scene), "f/2.8: one stop brighter than standard, background softer.");
-  assert.equal(explain("fStop", standard, scene), "f/4: standard. Bright enough, and forgiving focus.");
+  assert.equal(explain("fStop", { ...standard, fStop: 2 }, scene), "f/2: one stop brighter than standard, background softer.");
+  assert.equal(explain("fStop", standard, scene), "f/2.8: standard. Bright enough, and forgiving focus.");
   assert.equal(explain("wbK", { ...standard, wbK: 2500 }, scene), "2500 K: 1500 K below the room light, so the picture turns blue.");
   assert.equal(explain("shutterDeg", { ...standard, shutterDeg: 90 }, scene), "90°: one stop darker, choppy motion, and the LED wall bands.");
-  assert.equal(explain("focusM", { ...standard, focusM: 16 }, scene), "16 m: the LED wall is sharp and the speaker is soft.");
-  assert.equal(explain("focusM", standard, scene), "6.0 m: the speaker is sharp.");
-  assert.equal(explain("focusM", { ...standard, focusM: 2 }, scene), "2.0 m: nothing in the shot is sharp. The speaker is at 6.0 m.");
+  assert.equal(explain("focusM", { ...standard, focusM: 11 }, scene), "11 m: the LED wall and the curtains and truss are sharp and the speaker is soft.");
+  assert.equal(explain("focusM", standard, scene), "7.0 m: the speaker is sharp.");
+  assert.equal(explain("focusM", { ...standard, focusM: 2 }, scene), "2.0 m: nothing in the shot is sharp. The speaker is at 7.0 m.");
 });
 
 test("parseScene orders layers back to front and rejects unknown ids", () => {
   assert.deepEqual(
     scene.layers.map((l) => l.id),
-    ["wall", "mid", "stage", "subject", "lectern"],
+    ["wall", "mid", "subject"],
   );
   assert.throws(() => parseScene({ ...scene, subject: "pastor" }), /names layer "pastor"/);
 });

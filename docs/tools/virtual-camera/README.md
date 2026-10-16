@@ -50,14 +50,6 @@ With a single photo there's nothing recorded behind the speaker. `layers.js` fil
 | `ledWall` | Which layer is the LED wall, its refresh rate in Hz, and how many bands fit in the frame height. |
 | `motion` | Which layer sways, how far (as a fraction of the image width), how long one sway takes in seconds, and its direction. |
 
-## Regenerating the placeholder
-
-`scene/make-placeholder.mjs` draws the placeholder stage and its masks with Node and no packages:
-
-```sh
-node docs/tools/virtual-camera/scene/make-placeholder.mjs
-```
-
 ## Notes on the model
 
 - Exposure counts f-numbers in thirds of a stop, so the marked numbers (2.8, 5.6, 11) land on whole stops the way the lessons teach.

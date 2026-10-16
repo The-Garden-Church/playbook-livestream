@@ -16,7 +16,7 @@ export const SCENARIOS = [
     title: "Too dark after the lighting change",
     brief: "The lighting team brought the stage lights way down for the message. Get the speaker bright again. Use the aperture first, then ISO, and don't go past ISO 1600.",
     start: {},
-    sceneExposureOffset: -3,
+    sceneExposureOffset: -2,
     checks: ["apertureFirst"],
   },
   {
