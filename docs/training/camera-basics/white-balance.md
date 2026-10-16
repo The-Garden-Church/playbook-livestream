@@ -24,6 +24,12 @@ You set the camera to the color of the light, and the camera corrects for it. Th
 
 If faces look orange, lower the white balance number a little. If they look blue, raise it.
 
+## Match the light you actually have
+
+The number printed on a light, or typed into the lighting console, isn't always the color of the light on stage. House lights, LED fixtures and the LED wall all mix together. The reliable way to find the real number is to measure it. Hold a white or gray card where the speaker stands and let the camera's auto white balance read it once. Whatever number it lands on is the color of your room.
+
+From there, adjusting by taste is fine. Setting the camera a few hundred kelvin **higher** than the measured number warms skin up a little, which many people find flattering. Just keep every camera on the same value.
+
 ## Tint
 
 Color temperature fixes orange and blue. **Tint** fixes the other direction, green and magenta. LED lights and LED walls are often a little green or a little magenta, which temperature alone can't fix. Tint is a small slider. If skin looks a bit sickly green, move tint toward magenta. If it looks pink, move it toward green.
@@ -32,7 +38,7 @@ Color temperature fixes orange and blue. **Tint** fixes the other direction, gre
 
 Auto white balance changes as the shot changes. Point the camera at a blue LED wall and the whole picture shifts. Worse, two cameras on auto won't match each other, so every switch between them changes the color of the room.
 
-So we set white balance by hand to match the stage lighting, and every camera uses **the same values**. When the cameras match, the director can cut between them without the color jumping.
+So we measure the room once, set white balance by hand, and every camera uses **the same values**. When the cameras match, the director can cut between them without the color jumping.
 
 ??? note "On Blackmagic cameras"
     Tap the white balance value on the touchscreen to set temperature and tint. You can also hold a white or gray card in the light and use the auto white balance button once to measure it, then leave it alone. Write down the result so every camera can match it.
