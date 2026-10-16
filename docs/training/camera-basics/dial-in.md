@@ -51,3 +51,5 @@ Owning your camera means you notice problems before the director does. A few hab
 
 ??? note "Our standard settings"
     The Garden Church's current baseline values are on the [Hardware](../../hardware.md#standard-camera-settings) page. If you're from another church, write your own down in one place and have every operator start from them.
+
+Ready to try it? [Practice: dial in the shot](practice.md) lets you fix a camera with the wrong settings before the director notices.
