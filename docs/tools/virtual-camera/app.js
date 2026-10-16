@@ -1,7 +1,7 @@
 import { CONTROLS, CONTROL_ORDER, FPS, readiness, snap, standardCamera } from "./model.js";
 import { SCENARIOS, scenarioCamera } from "./scenarios.js";
 import { explain } from "./explain.js";
-import { loadScene, loadSceneList } from "./scene-loader.js";
+import { loadScene } from "./scene-loader.js";
 import { createRenderer, HIST_BINS } from "./renderer.js";
 
 const RENDER_WIDTH = 1280;
@@ -12,18 +12,9 @@ new ResizeObserver(() =>
   parent.postMessage({ figure: "virtual-camera", height: Math.ceil(document.documentElement.getBoundingClientRect().height) }, "*"),
 ).observe(document.documentElement);
 
-const sceneBase = new URL("scene/", import.meta.url);
-const loads = new Map();
-const loadById = (id) => {
-  if (!loads.has(id)) loads.set(id, loadScene(scenes.find((s) => s.id === id), sceneBase, RENDER_WIDTH));
-  return loads.get(id);
-};
-
-let scenes;
 let loaded;
 try {
-  scenes = await loadSceneList(sceneBase);
-  loaded = await loadById(scenes[0].id);
+  loaded = await loadScene(new URL("scene/", import.meta.url), RENDER_WIDTH);
 } catch (error) {
   $("#nogl").textContent = "The practice scene didn't load. Refresh the page to try again.";
   $("#nogl").hidden = false;
@@ -51,15 +42,6 @@ const state = {
   overlays: { zebras: false, falseColor: false, peaking: false, histogram: false },
 };
 const currentScenario = () => SCENARIOS.find((s) => s.id === state.scenarioId) ?? null;
-
-async function showScene(id) {
-  const next = await loadById(id);
-  loaded = next;
-  state.camera = standardCamera(next.scene);
-  state.scenarioId = null;
-  state.result = null;
-  resizeCanvas();
-}
 
 const focusToPos = (m) => Math.round((1000 * Math.log(m / CONTROLS.focusM.min)) / Math.log(CONTROLS.focusM.max / CONTROLS.focusM.min));
 const posToFocus = (p) => CONTROLS.focusM.min * (CONTROLS.focusM.max / CONTROLS.focusM.min) ** (p / 1000);
@@ -104,29 +86,6 @@ for (const key of CONTROL_ORDER) {
   controlEls[key] = { input, out: row.querySelector("output"), why: row.querySelector(".why"), kind, c };
 }
 
-const picker = $("#scenes");
-for (const s of scenes) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.dataset.scene = s.id;
-  button.textContent = s.label;
-  button.addEventListener("click", async () => {
-    if (s.id === loaded.scene.id) return;
-    picker.setAttribute("aria-busy", "true");
-    try {
-      await showScene(s.id);
-    } catch (error) {
-      $("#nogl").textContent = "That camera didn't load. Refresh the page to try again.";
-      $("#nogl").hidden = false;
-      throw error;
-    } finally {
-      picker.removeAttribute("aria-busy");
-    }
-    update();
-  });
-  picker.append(button);
-}
-
 for (const button of document.querySelectorAll("[data-tool]")) {
   button.addEventListener("click", () => {
     const tool = button.dataset.tool;
@@ -150,15 +109,13 @@ for (const tab of document.querySelectorAll("[data-mode]")) {
 const list = $("#scenario-list");
 SCENARIOS.forEach((s, i) => {
   const li = document.createElement("li");
-  const where = scenes.find((x) => x.id === s.scene).label;
-  li.innerHTML = `<button type="button" data-scenario="${s.id}"><span class="num">${i + 1}</span><span class="title">${s.title}<small>${where}</small></span><span class="done" aria-label="completed">✓</span></button>`;
+  li.innerHTML = `<button type="button" data-scenario="${s.id}"><span class="num">${i + 1}</span><span class="title">${s.title}</span><span class="done" aria-label="completed">✓</span></button>`;
   li.querySelector("button").addEventListener("click", () => startScenario(s.id));
   list.append(li);
 });
 
-async function startScenario(id) {
+function startScenario(id) {
   const scenario = SCENARIOS.find((s) => s.id === id);
-  if (scenario.scene !== loaded.scene.id) await showScene(scenario.scene);
   state.scenarioId = id;
   state.camera = scenarioCamera(scenario, loaded.scene);
   state.result = null;
@@ -216,7 +173,6 @@ function renderResults() {
 function update() {
   const { camera } = state;
   const { scene } = loaded;
-  for (const button of picker.querySelectorAll("button")) button.setAttribute("aria-pressed", String(button.dataset.scene === scene.id));
   canvas.setAttribute("aria-label", scene.alt);
   canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
   const mark = $("#focus-mark");
@@ -322,4 +278,3 @@ function tick(now) {
 
 update();
 document.documentElement.dataset.ready = "true";
-setTimeout(() => scenes.forEach((s) => loadById(s.id)), 500);

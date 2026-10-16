@@ -21,27 +21,15 @@ export function snap(key, value) {
   return c.kind === "range" ? Math.round((clamped - c.min) / c.step) * c.step + c.min : clamped;
 }
 
-function maskKind(mask) {
-  if (mask === "remainder") return "remainder";
-  if (typeof mask === "string") return "image";
-  if (Array.isArray(mask?.rects) && mask.rects.every((r) => r.length === 4)) return "rects";
-  return null;
-}
-
 export function parseScene(raw) {
-  const where = `scene "${raw.id}"`;
+  const where = "scene.json";
   const layers = [...raw.layers].sort((a, b) => b.distanceM - a.distanceM);
   const byId = new Map(layers.map((l) => [l.id, l]));
-  for (const ref of [raw.subject, raw.motion.layer, raw.ledWall?.layer].filter(Boolean)) {
+  for (const ref of [raw.subject, raw.ledWall?.layer].filter(Boolean)) {
     if (!byId.has(ref)) throw new Error(`${where} names layer "${ref}" but has no layer with that id`);
   }
   for (const layer of layers) {
-    if (!maskKind(layer.mask)) throw new Error(`${where} layer "${layer.id}" needs a mask file, "remainder", or { rects }`);
-    if (!layer.partOf) continue;
-    const parent = byId.get(layer.partOf);
-    if (!parent || typeof parent.mask !== "string" || maskKind(layer.mask) !== "rects" || parent.distanceM <= layer.distanceM) {
-      throw new Error(`${where} layer "${layer.id}" is part of "${layer.partOf}", so it needs { rects }, sits in front of it, and "${layer.partOf}" needs a mask file`);
-    }
+    if (typeof layer.mask !== "string") throw new Error(`${where} layer "${layer.id}" needs a mask file or "remainder"`);
   }
   if (layers.filter((l) => l.mask === "remainder").length !== 1) throw new Error(`${where} needs exactly one layer with mask "remainder"`);
   return {
@@ -50,14 +38,7 @@ export function parseScene(raw) {
     reference: { ...raw.reference },
     ledWall: raw.ledWall ?? null,
     subjectM: byId.get(raw.subject).distanceM,
-    motionM: byId.get(raw.motion.layer).distanceM,
   };
-}
-
-export function parseScenes(raw) {
-  const scenes = raw.scenes.map(parseScene);
-  if (new Set(scenes.map((s) => s.id)).size !== scenes.length) throw new Error("scenes.json has two scenes with the same id");
-  return scenes;
 }
 
 export function standardCamera(scene) {
@@ -132,30 +113,10 @@ export function inDepthOfField(depthM, camera, lens) {
   return cocMm(depthM, camera.focusM, camera.fStop, lens.focalMm) <= lens.sensorMm * DOF_COC_FRACTION;
 }
 
-export function motionBlurPx(shutterDeg, speedPxPerSec) {
-  return Math.abs(speedPxPerSec) * (shutterDeg / 360 / FPS);
-}
-
-export function imagePxPerMetre(distanceM, lens, widthPx) {
-  return (lens.focalMm / (distanceM * 1000 - lens.focalMm)) * 1000 * (widthPx / lens.sensorMm);
-}
-
-export function gestureAt(motion, pxPerMetre, timeS) {
-  const amplitudeM = motion.travelM / 2;
-  const w = motion.peakSpeedMps / amplitudeM;
-  return {
-    offsetPx: amplitudeM * pxPerMetre * (1 - Math.cos(w * timeS)),
-    speedPxPerSec: motion.peakSpeedMps * pxPerMetre * Math.sin(w * timeS),
-  };
-}
-
 export function ledBanding(shutterDeg, fps, refreshHz = MAINS_HZ) {
   const cycles = (shutterDeg / 360 / fps) * refreshHz;
   const amplitude = Math.abs(Math.sin(Math.PI * cycles) / (Math.PI * cycles));
-  const actualFps = (fps * 1000) / 1001;
-  const beat = refreshHz / actualFps;
-  const rollHz = (beat - Math.round(beat)) * actualFps;
-  return { amplitude: amplitude < 1e-9 ? 0 : amplitude, rollHz: amplitude < 1e-9 ? 0 : rollHz };
+  return amplitude < 1e-9 ? 0 : amplitude;
 }
 
 export function sceneExposure(camera, scene, scenario) {

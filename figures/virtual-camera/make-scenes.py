@@ -1,8 +1,7 @@
 """Cut the stage photos in source/ into the virtual camera's scene layers.
 
 Needs `pip install "rembg[cpu]" pillow`. Writes to docs/tools/virtual-camera/scene/.
-Run once per scene (`python make-scenes.py wide`, then `close`), since the
-segmentation model needs most of a 16 GB machine's memory per photo.
+The segmentation model needs most of a 16 GB machine's memory.
 """
 import sys
 from pathlib import Path
@@ -15,7 +14,6 @@ OUT = HERE.parent.parent / "docs" / "tools" / "virtual-camera" / "scene"
 
 SCENES = {
     "wide": {"source": "main.png", "wall_bottom": 395},
-    "close": {"source": "side.png", "wall_bottom": None},
 }
 
 

@@ -1,4 +1,4 @@
-import { FPS, NOISE_CHROMA_RATIO, addedNoiseSigma, blurRadiusPx, exposureStops, gestureAt, imagePxPerMetre, ledBanding, motionBlurPx, wbGains } from "./model.js";
+import { FPS, NOISE_CHROMA_RATIO, addedNoiseSigma, blurRadiusPx, exposureStops, ledBanding, wbGains } from "./model.js";
 
 const MAX_LAYERS = 8;
 const HIST_W = 128;
@@ -38,9 +38,6 @@ precision highp sampler2DArray;
 uniform sampler2DArray layers;
 uniform int layerCount;
 uniform int wallIndex;
-uniform int motionIndex;
-uniform vec2 motionOffset;
-uniform vec2 motionSpan;
 uniform float bandAmp;
 uniform float bandPhase;
 uniform float bandCount;
@@ -72,16 +69,7 @@ void main() {
   vec3 acc = vec3(0.0);
   for (int i = 0; i < ${MAX_LAYERS}; i++) {
     if (i >= layerCount) break;
-    vec4 s = vec4(0.0);
-    if (i == motionIndex) {
-      for (int k = 0; k < 12; k++) {
-        float t = (float(k) + 0.5) / 12.0 - 0.5;
-        s += texture(layers, vec3(uv - motionOffset - motionSpan * t, float(i)));
-      }
-      s /= 12.0;
-    } else {
-      s = texture(layers, vec3(uv, float(i)));
-    }
+    vec4 s = texture(layers, vec3(uv, float(i)));
     if (i == wallIndex) s.rgb *= max(0.0, 1.0 + bandAmp * cos(6.2831853 * (uv.y * bandCount + bandPhase)));
     acc = acc * (1.0 - s.a) + s.rgb;
   }
@@ -164,21 +152,12 @@ function compile(gl, fragment) {
   return { program, uniforms };
 }
 
-export function frameUniforms(camera, scene, scenario, timeS, width, height) {
+export function frameUniforms(camera, scene, scenario, timeS) {
   const frame = Math.floor(timeS * FPS);
-  const exposureS = camera.shutterDeg / 360 / FPS;
-  const tMid = frame / FPS + exposureS / 2;
-  const [dx, dy] = scene.motion.direction;
-  const norm = Math.hypot(dx, dy);
-  const { offsetPx, speedPxPerSec } = gestureAt(scene.motion, imagePxPerMetre(scene.motionM, scene.lens, width), tMid);
-  const blurPx = motionBlurPx(camera.shutterDeg, speedPxPerSec);
-  const band = scene.ledWall ? ledBanding(camera.shutterDeg, FPS, scene.ledWall.refreshHz) : { amplitude: 0, rollHz: 0 };
   return {
     frame,
-    motionOffset: [(offsetPx * dx) / norm / width, (offsetPx * dy) / norm / height],
-    motionSpan: [(blurPx * dx) / norm / width, (blurPx * dy) / norm / height],
-    bandAmp: band.amplitude,
-    bandPhase: band.rollHz * timeS,
+    bandAmp: scene.ledWall ? ledBanding(camera.shutterDeg, FPS, scene.ledWall.refreshHz) : 0,
+    bandPhase: scene.ledWall ? (frame / FPS) * scene.ledWall.rollBandsPerS : 0,
     bandCount: scene.ledWall?.bandsPerFrame ?? 0,
     gain: 2 ** (exposureStops(camera, scene.reference) + (scenario?.sceneExposureOffset ?? 0)),
     wb: wbGains(camera.wbK, camera.tint, scene.lightK),
@@ -247,7 +226,6 @@ export function createRenderer(canvas) {
       blurTargets,
       output: target(width, height),
       wallIndex: scene.ledWall ? ids.indexOf(scene.ledWall.layer) : -1,
-      motionIndex: ids.indexOf(scene.motion.layer),
       opticsKey: "",
     };
   }
@@ -282,7 +260,7 @@ export function createRenderer(canvas) {
     current = g;
     const { scene, width, height } = g;
     blurLayers(g, camera);
-    const u = frameUniforms(camera, scene, scenario, timeS, width, height);
+    const u = frameUniforms(camera, scene, scenario, timeS);
     gl.useProgram(cameraProgram.program);
     const cu = cameraProgram.uniforms;
     gl.bindFramebuffer(gl.FRAMEBUFFER, g.output.fb);
@@ -292,9 +270,6 @@ export function createRenderer(canvas) {
     gl.uniform1i(cu.layers, 0);
     gl.uniform1i(cu.layerCount, g.n);
     gl.uniform1i(cu.wallIndex, g.wallIndex);
-    gl.uniform1i(cu.motionIndex, g.motionIndex);
-    gl.uniform2fv(cu.motionOffset, u.motionOffset);
-    gl.uniform2fv(cu.motionSpan, u.motionSpan);
     gl.uniform1f(cu.bandAmp, u.bandAmp);
     gl.uniform1f(cu.bandPhase, u.bandPhase);
     gl.uniform1f(cu.bandCount, u.bandCount);
