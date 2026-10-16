@@ -9,9 +9,10 @@
   <body>
     <main class="vcam">
       <section class="finder" aria-label="Camera viewfinder">
+        <div class="scenes" id="scenes" role="group" aria-label="Camera"></div>
         <div class="status" id="status"></div>
         <div class="screen">
-          <canvas id="view" role="img" aria-label="The practice camera's picture of a speaker at a lectern in front of an LED wall"></canvas>
+          <canvas id="view" role="img"></canvas>
           <canvas id="histogram" class="histogram" width="192" height="88" hidden aria-hidden="true"></canvas>
           <p class="nogl" id="nogl" hidden>
             This practice camera needs WebGL2, which this browser doesn't have turned on. Try a recent version of Chrome, Edge, Firefox or Safari.

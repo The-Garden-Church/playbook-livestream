@@ -12,19 +12,24 @@ new ResizeObserver(() =>
   parent.postMessage({ figure: "virtual-camera", height: Math.ceil(document.documentElement.getBoundingClientRect().height) }, "*"),
 ).observe(document.documentElement);
 
+const sceneBase = new URL("scene/", import.meta.url);
+const loads = new Map();
+const loadById = (id) => {
+  if (!loads.has(id)) loads.set(id, loadScene(scenes.find((s) => s.id === id), sceneBase, RENDER_WIDTH));
+  return loads.get(id);
+};
+
+let scenes;
 let loaded;
 try {
-  const sceneBase = new URL("scene/", import.meta.url);
-  loaded = await loadScene((await loadSceneList(sceneBase))[0], sceneBase, RENDER_WIDTH);
+  scenes = await loadSceneList(sceneBase);
+  loaded = await loadById(scenes[0].id);
 } catch (error) {
   $("#nogl").textContent = "The practice scene didn't load. Refresh the page to try again.";
   $("#nogl").hidden = false;
   throw error;
 }
-const { scene } = loaded;
-const standard = standardCamera(scene);
 const canvas = $("#view");
-canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
 const renderer = createRenderer(canvas);
 if (!renderer) {
   canvas.hidden = true;
@@ -38,7 +43,7 @@ canvas.addEventListener("webglcontextlost", () => {
 });
 
 const state = {
-  camera: { ...standard },
+  camera: standardCamera(loaded.scene),
   mode: "free",
   scenarioId: null,
   result: null,
@@ -46,6 +51,15 @@ const state = {
   overlays: { zebras: false, falseColor: false, peaking: false, histogram: false },
 };
 const currentScenario = () => SCENARIOS.find((s) => s.id === state.scenarioId) ?? null;
+
+async function showScene(id) {
+  const next = await loadById(id);
+  loaded = next;
+  state.camera = standardCamera(next.scene);
+  state.scenarioId = null;
+  state.result = null;
+  resizeCanvas();
+}
 
 const focusToPos = (m) => Math.round((1000 * Math.log(m / CONTROLS.focusM.min)) / Math.log(CONTROLS.focusM.max / CONTROLS.focusM.min));
 const posToFocus = (p) => CONTROLS.focusM.min * (CONTROLS.focusM.max / CONTROLS.focusM.min) ** (p / 1000);
@@ -83,12 +97,34 @@ for (const key of CONTROL_ORDER) {
   if (key === "focusM") {
     const mark = document.createElement("span");
     mark.className = "mark";
-    mark.style.setProperty("--at", `${focusToPos(scene.subjectM) / 10}%`);
-    mark.textContent = `Speaker ${CONTROLS.focusM.format(scene.subjectM)}`;
+    mark.id = "focus-mark";
     row.querySelector(".slider").append(mark);
   }
   $("#controls").append(row);
   controlEls[key] = { input, out: row.querySelector("output"), why: row.querySelector(".why"), kind, c };
+}
+
+const picker = $("#scenes");
+for (const s of scenes) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.scene = s.id;
+  button.textContent = s.label;
+  button.addEventListener("click", async () => {
+    if (s.id === loaded.scene.id) return;
+    picker.setAttribute("aria-busy", "true");
+    try {
+      await showScene(s.id);
+    } catch (error) {
+      $("#nogl").textContent = "That camera didn't load. Refresh the page to try again.";
+      $("#nogl").hidden = false;
+      throw error;
+    } finally {
+      picker.removeAttribute("aria-busy");
+    }
+    update();
+  });
+  picker.append(button);
 }
 
 for (const button of document.querySelectorAll("[data-tool]")) {
@@ -104,7 +140,7 @@ for (const tab of document.querySelectorAll("[data-mode]")) {
     state.mode = tab.dataset.mode;
     if (state.mode === "free") {
       state.scenarioId = null;
-      state.camera = { ...standard };
+      state.camera = standardCamera(loaded.scene);
     }
     state.result = null;
     update();
@@ -114,14 +150,17 @@ for (const tab of document.querySelectorAll("[data-mode]")) {
 const list = $("#scenario-list");
 SCENARIOS.forEach((s, i) => {
   const li = document.createElement("li");
-  li.innerHTML = `<button type="button" data-scenario="${s.id}"><span class="num">${i + 1}</span><span class="title">${s.title}</span><span class="done" aria-label="completed">✓</span></button>`;
+  const where = scenes.find((x) => x.id === s.scene).label;
+  li.innerHTML = `<button type="button" data-scenario="${s.id}"><span class="num">${i + 1}</span><span class="title">${s.title}<small>${where}</small></span><span class="done" aria-label="completed">✓</span></button>`;
   li.querySelector("button").addEventListener("click", () => startScenario(s.id));
   list.append(li);
 });
 
-function startScenario(id) {
+async function startScenario(id) {
+  const scenario = SCENARIOS.find((s) => s.id === id);
+  if (scenario.scene !== loaded.scene.id) await showScene(scenario.scene);
   state.scenarioId = id;
-  state.camera = scenarioCamera(currentScenario(), scene);
+  state.camera = scenarioCamera(scenario, loaded.scene);
   state.result = null;
   update();
 }
@@ -132,9 +171,9 @@ function setCamera(patch) {
   update();
 }
 
-$("#reset").addEventListener("click", () => setCamera({ ...standard }));
+$("#reset").addEventListener("click", () => setCamera(standardCamera(loaded.scene)));
 $("#check").addEventListener("click", () => {
-  state.result = readiness(state.camera, currentScenario(), scene);
+  state.result = readiness(state.camera, currentScenario(), loaded.scene);
   if (state.result.ready && state.scenarioId) state.completed.add(state.scenarioId);
   update();
   $("#results").scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -176,6 +215,13 @@ function renderResults() {
 
 function update() {
   const { camera } = state;
+  const { scene } = loaded;
+  for (const button of picker.querySelectorAll("button")) button.setAttribute("aria-pressed", String(button.dataset.scene === scene.id));
+  canvas.setAttribute("aria-label", scene.alt);
+  canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
+  const mark = $("#focus-mark");
+  mark.style.setProperty("--at", `${focusToPos(scene.subjectM) / 10}%`);
+  mark.textContent = `Speaker ${CONTROLS.focusM.format(scene.subjectM)}`;
   for (const [key, el] of Object.entries(controlEls)) {
     const pos = el.kind.toPos(el.c, camera[key]);
     if (Number(el.input.value) !== pos) el.input.value = pos;
@@ -276,3 +322,4 @@ function tick(now) {
 
 update();
 document.documentElement.dataset.ready = "true";
+setTimeout(() => scenes.forEach((s) => loadById(s.id)), 500);
