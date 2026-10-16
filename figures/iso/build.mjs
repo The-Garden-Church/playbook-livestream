@@ -459,7 +459,7 @@ draw();
 const body =
   CSS +
   k.plateHtml({
-    fig: "Fig 4",
+    fig: "Fig 3",
     title: "ISO and gain",
     hint: "Drag the knob or use arrow keys",
     readout: readoutOf(STOPS[HOME]),
