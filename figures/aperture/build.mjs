@@ -2,6 +2,7 @@ import * as k from "../anatomy/kit/iso-kit.mjs";
 import * as G from "../anatomy/kit/lathe.mjs";
 import { kitScript } from "../anatomy/scripts/inline-kit.mjs";
 import { writeFigure } from "../embed.mjs";
+import { springTo } from "../spring.mjs";
 
 const WIDTH = 600;
 const HEIGHT = 400;
@@ -399,6 +400,7 @@ const live = `
 const DATA = ${JSON.stringify(DATA)};
 const IRIS = DATA.iris;
 const irisOf = ${irisOf.toString()};
+const springTo = ${springTo.toString()};
 const { P, F, V } = DATA;
 const stage = document.querySelector(".iso-stage");
 const svg = stage.querySelector("svg");
@@ -470,7 +472,7 @@ function drawLight(pos) {
   cone.setAttribute("opacity", (0.05 + 0.2 * strength).toFixed(3));
   patch.setAttribute("opacity", (0.08 + 0.92 * strength).toFixed(3));
 }
-let pos = DATA.start, target = DATA.start, shown = -1, frame = 0, lastTime = 0, clock = 0, touring = !still.matches, visible = false, idle = 0, drag = null;
+let pos = DATA.start, target = DATA.start, spin = { x: DATA.start, v: 0 }, shown = -1, frame = 0, lastTime = 0, clock = 0, touring = !still.matches, visible = false, idle = 0, drag = null;
 const TOUR = [0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1];
 const tourAt = (t) => TOUR[Math.floor(t / 1.6) % TOUR.length];
 function describe() {
@@ -487,15 +489,25 @@ function tick(now) {
   lastTime = now;
   const calm = still.matches;
   if (touring) { clock += dt; target = tourAt(clock); }
-  pos = calm ? target : pos + (target - pos) * (1 - Math.exp(-dt / 0.22));
-  if (Math.abs(target - pos) < 0.002) pos = target;
+  let moving = false;
+  if (calm) pos = target;
+  else if (touring) {
+    pos += (target - pos) * (1 - Math.exp(-dt / 0.22));
+    if (Math.abs(target - pos) < 0.002) pos = target;
+    moving = pos !== target;
+  } else {
+    spin.x = pos;
+    moving = springTo(spin, target, dt);
+    pos = spin.x;
+  }
+  if (calm || touring) spin.v = 0;
   draw();
-  frame = visible && (touring || pos !== target) ? requestAnimationFrame(tick) : 0;
+  frame = visible && (touring || moving) ? requestAnimationFrame(tick) : 0;
 }
 const run = () => { if (!frame && visible) { lastTime = 0; frame = requestAnimationFrame(tick); } };
 const hold = () => { touring = false; clearTimeout(idle); };
 const rest = () => { clearTimeout(idle); idle = setTimeout(() => { if (drag) return; touring = !still.matches; clock = (TOUR.indexOf(target) + 0.5) * 1.6; run(); }, 3600); };
-const steer = (next) => { hold(); target = clamp(next, 0, last); rest(); run(); };
+const steer = (next, from) => { hold(); target = clamp(next, 0, last); if (target !== from) window.detent(); rest(); run(); };
 new IntersectionObserver((entries) => { visible = entries[entries.length - 1].isIntersecting; if (visible) run(); }, { rootMargin: "120px 0px" }).observe(stage);
 const svgScale = () => svg.getBoundingClientRect().width / ${WIDTH};
 stage.addEventListener("pointerdown", (event) => {
@@ -503,6 +515,7 @@ stage.addEventListener("pointerdown", (event) => {
   hold();
   stage.focus({ preventScroll: true });
   drag = { id: event.pointerId, x: event.clientX, y: event.clientY, from: Math.round(pos) };
+  target = drag.from;
   stage.setPointerCapture(event.pointerId);
   stage.setAttribute("data-drag", "");
   event.preventDefault();
@@ -511,7 +524,10 @@ stage.addEventListener("pointermove", (event) => {
   if (!drag || event.pointerId !== drag.id) return;
   const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
   const along = (dx * dragDir[0] + dy * dragDir[1]) / (perStop * 0.8 * svgScale());
-  target = clamp(Math.round(drag.from + along), 0, last);
+  const to = clamp(Math.round(drag.from + along), 0, last);
+  if (to === target) return;
+  target = to;
+  window.detent();
   run();
 });
 const release = (event) => {
@@ -532,7 +548,7 @@ stage.addEventListener("keydown", (event) => {
   if (event.key === "End") to = last;
   if (to === null) return;
   event.preventDefault();
-  steer(to);
+  steer(to, here);
 });
 if (still.matches) touring = false;
 draw();

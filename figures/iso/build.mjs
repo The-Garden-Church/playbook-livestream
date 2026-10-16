@@ -1,6 +1,7 @@
 import * as k from "../anatomy/kit/iso-kit.mjs";
 import { kitScript } from "../anatomy/scripts/inline-kit.mjs";
 import { writeFigure } from "../embed.mjs";
+import { springTo } from "../spring.mjs";
 
 const WIDTH = 650;
 const HEIGHT = 330;
@@ -329,6 +330,7 @@ const DATA = {
 const live = `
 const DATA = ${JSON.stringify(DATA)};
 const { P, STOPS, HOME, COLLECTED, BASE_NOISE, FULL, COLUMNS, WIN, WELL, METER, KNOB, KNOB_R, KNOB_TOP, SWEEP_FROM, SWEEP, READOUTS } = DATA;
+const springTo = ${springTo.toString()};
 const stage = document.querySelector(".iso-stage");
 const svg = stage.querySelector("svg");
 const part = (name) => svg.querySelector('[data-part="' + name + '"]');
@@ -364,7 +366,7 @@ function fillShape(x0, x1, y, top) {
   return path([project(x0, y, WIN[0] - 1), project(x1, y, WIN[0] - 1), ...[...top].reverse()], true);
 }
 let index = HOME, target = HOME, shown = -1;
-let db = 0, angle = angleAt(HOME);
+let db = 0, angle = angleAt(HOME), knob = { x: angleAt(HOME), v: 0 };
 let frame = 0, last = 0, visible = false, touring = !still.matches, clock = 0, idleTimer = 0;
 const TOUR = [2, 3, 4, 5, 6, 6, 5, 4, 3, 2, 1, 0, 0, 1];
 const dbAt = (i) => 6 * Math.log2(STOPS[i] / 400);
@@ -404,9 +406,16 @@ function tick(now) {
   }
   const wantDb = dbAt(target), wantAngle = angleAt(target);
   db = calm ? wantDb : db + (wantDb - db) * (1 - Math.exp(-dt / 0.2));
-  angle = calm ? wantAngle : angle + (wantAngle - angle) * (1 - Math.exp(-dt / 0.14));
+  if (calm || touring) {
+    angle = calm ? wantAngle : angle + (wantAngle - angle) * (1 - Math.exp(-dt / 0.14));
+    if (Math.abs(wantAngle - angle) < 0.0005) angle = wantAngle;
+    knob.v = 0;
+  } else {
+    knob.x = angle;
+    springTo(knob, wantAngle, dt);
+    angle = knob.x;
+  }
   if (Math.abs(wantDb - db) < 0.002) db = wantDb;
-  if (Math.abs(wantAngle - angle) < 0.0005) angle = wantAngle;
   drift(wellNoise, dt, calm);
   drift(meterNoise, dt, calm);
   draw();
@@ -414,7 +423,7 @@ function tick(now) {
 }
 const run = () => { if (!frame && visible) { last = 0; frame = requestAnimationFrame(tick); } if (still.matches) requestAnimationFrame(tick); };
 const quiet = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { if (!still.matches && !drag) { touring = true; clock = Math.max(0, TOUR.indexOf(target)) * 1.5; run(); } }, 3600); };
-const steer = (next) => { touring = false; const to = clamp(next, 0, STOPS.length - 1); if (to !== target) { target = to; describe(); } quiet(); run(); };
+const steer = (next) => { touring = false; const to = clamp(next, 0, STOPS.length - 1); if (to !== target) { target = to; describe(); window.detent(); } quiet(); run(); };
 let drag = null;
 stage.addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;
