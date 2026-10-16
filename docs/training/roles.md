@@ -27,7 +27,9 @@ The [Hardware page](../hardware.md#function-buttons) lists what each button does
 
 If you're operating a camera, framing matters as much as focus. The two most important concepts are the **rule of thirds** and **headroom** (the space between the top of the subject's head and the top of the frame).
 
-Before your first shift on camera, work through these:
+Start with [Framing the shot](camera-basics/framing.md). It covers shot sizes and their names, headroom, lead room and smooth moves, and ends with a practice camera where you frame the shot yourself.
+
+For further reading:
 
 - [Mastering Headroom: Applying the Rule of Thirds (Connection Card Pro)](https://www.connectioncardpro.com/help/Streaming-Cameras-and-Composition/Mastering-Headroom-Applying-the-Rule-of-Thirds/). Written specifically for church livestreaming. Covers waist-up, knees-up, and elbows-up shots common in worship settings, with a five-point checklist you can run through before going live. Best starting point for new camera operators on the team.
 - [A beginner's guide to the rule of thirds (Videomaker)](https://www.videomaker.com/article/c10/14215-a-beginners-guide-to-the-rule-of-thirds/). A broader video composition primer if you want to build the foundation beyond church-specific framing.
