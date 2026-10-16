@@ -22,6 +22,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.indexes
     - navigation.top
     - search.highlight
     - search.suggest
@@ -32,6 +33,7 @@ extra_css:
 
 extra_javascript:
   - javascripts/interactive-checklists.js
+  - javascripts/figure-embeds.js
 
 plugins:
   - search
@@ -64,6 +66,14 @@ nav:
   - Hardware: hardware.md
   - Training:
     - Onboarding: training/onboarding.md
+    - Camera Basics:
+      - training/camera-basics/index.md
+      - Aperture: training/camera-basics/aperture.md
+      - Shutter: training/camera-basics/shutter.md
+      - ISO and Gain: training/camera-basics/iso.md
+      - White Balance and Tint: training/camera-basics/white-balance.md
+      - Zoom and Focus: training/camera-basics/focus-and-zoom.md
+      - Dialing In Your Camera: training/camera-basics/dial-in.md
     - Role-Specific Guides: training/roles.md
     - Glossary: training/glossary.md
   - Credentials: credentials.md

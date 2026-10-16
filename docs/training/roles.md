@@ -14,6 +14,8 @@ Responsible for encoding, platform management, and stream health end-to-end. Thi
 
 Responsible for operating an assigned camera and following the shot list and director cues.
 
+New to cameras? Start with [Camera basics](camera-basics/index.md). It walks through every control on the camera and how to dial in your shot before service.
+
 ### How we use the camera buttons
 
 The [Hardware page](../hardware.md#function-buttons) lists what each button does. Use them on a serve as follows:
