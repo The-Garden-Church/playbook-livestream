@@ -9,7 +9,22 @@ This is a practice camera. It shows what each setting does to the picture, so yo
 
 The picture is a photo from the main camera on a real church stage, about 7 m from the speaker, with a big LED wall across the top of the shot. The standard settings are f/2.8, 180°, ISO 400, 4000 K and tint 0, and the room light is 4000 K. The controls run in the same order as [Dialing in your camera](dial-in.md): shutter, white balance, tint, aperture, ISO, then focus.
 
-<iframe class="figure-embed" src="../../../tools/virtual-camera/" title="Practice camera with shutter, white balance, tint, aperture, ISO and focus controls" loading="lazy"></iframe>
+<div class="tool-embed">
+<iframe class="figure-embed tool-inline" src="../../../tools/virtual-camera/" title="Practice camera with shutter, white balance, tint, aperture, ISO and focus controls" loading="lazy"></iframe>
+<div class="tool-launch">
+  <button type="button" class="tool-launch__card" data-open-sheet="vcam-sheet">
+    <img src="../../../tools/virtual-camera/scene/wide.jpg" alt="" loading="lazy">
+    <span class="tool-launch__label">Open the practice camera</span>
+  </button>
+</div>
+<dialog class="tool-sheet" id="vcam-sheet" aria-label="Practice camera">
+  <div class="tool-sheet__bar">
+    <span>Practice camera</span>
+    <button type="button" data-close-sheet>Done</button>
+  </div>
+  <iframe data-src="../../../tools/virtual-camera/" title="Practice camera with shutter, white balance, tint, aperture, ISO and focus controls"></iframe>
+</dialog>
+</div>
 
 ## How to use it
 
