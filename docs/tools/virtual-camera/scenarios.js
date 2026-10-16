@@ -1,4 +1,4 @@
-import { standardCamera } from "./model.js";
+import { inLight, standardCamera } from "./model.js";
 
 export const SCENARIOS = [
   {
@@ -34,12 +34,30 @@ export const SCENARIOS = [
     start: { focusM: "wall" },
   },
   {
+    id: "sun-came-out",
+    title: "The sun came out",
+    brief: "Halfway through the service the sun broke through and started pouring in the windows. Faces suddenly look warm next to a few minutes ago.",
+    light: "sunny",
+    start: {},
+  },
+  {
+    id: "clouds-rolled-in",
+    title: "Clouds rolled in",
+    brief: "The sky went gray during worship. Faces look cold and a little blue, and nobody touched your camera.",
+    light: "cloudy",
+    start: {},
+  },
+  {
     id: "everything",
     title: "Everything's wrong",
     brief: "You just sat down at a camera nobody set up. Run the whole dial-in routine before the service starts.",
     start: { shutterDeg: 270, wbK: 3200, tint: -10, fStop: 8, iso: 3200, focusM: 2.5 },
   },
 ];
+
+export function scenarioScene(scenario, scene) {
+  return scenario.light ? inLight(scene, scenario.light) : scene;
+}
 
 export function scenarioCamera(scenario, scene) {
   const start = { ...standardCamera(scene), ...scenario.start };

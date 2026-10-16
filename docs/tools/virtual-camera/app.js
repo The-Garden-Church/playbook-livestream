@@ -1,6 +1,6 @@
-import { CONTROLS, CONTROL_ORDER, FPS, readiness, snap, standardCamera } from "./model.js";
-import { SCENARIOS, scenarioCamera } from "./scenarios.js";
-import { explain } from "./explain.js";
+import { CONTROLS, CONTROL_ORDER, FPS, inLight, readiness, snap, standardCamera } from "./model.js";
+import { SCENARIOS, scenarioCamera, scenarioScene } from "./scenarios.js";
+import { explain, explainLight } from "./explain.js";
 import { loadScene } from "./scene-loader.js";
 import { createRenderer, HIST_BINS } from "./renderer.js";
 
@@ -36,12 +36,21 @@ canvas.addEventListener("webglcontextlost", () => {
 const state = {
   camera: standardCamera(loaded.scene),
   mode: "free",
+  lightId: loaded.scene.light.id,
+  selected: CONTROL_ORDER[0],
   scenarioId: null,
   result: null,
   completed: new Set(),
   overlays: { zebras: false, falseColor: false, peaking: false, histogram: false },
 };
 const currentScenario = () => SCENARIOS.find((s) => s.id === state.scenarioId) ?? null;
+
+function roomScene() {
+  const scenario = currentScenario();
+  if (scenario) return scenarioScene(scenario, loaded.scene);
+  return state.mode === "free" ? inLight(loaded.scene, state.lightId) : loaded.scene;
+}
+let scene = roomScene();
 
 const focusToPos = (m) => Math.round((1000 * Math.log(m / CONTROLS.focusM.min)) / Math.log(CONTROLS.focusM.max / CONTROLS.focusM.min));
 const posToFocus = (p) => CONTROLS.focusM.min * (CONTROLS.focusM.max / CONTROLS.focusM.min) ** (p / 1000);
@@ -73,6 +82,7 @@ for (const key of CONTROL_ORDER) {
   const kind = SLIDER[c.kind];
   const row = document.createElement("div");
   row.className = "control";
+  row.id = `row-${key}`;
   row.innerHTML = `<div class="control-head"><label for="ctl-${key}">${c.label}</label><output id="out-${key}"></output></div>
     <div class="slider"><input type="range" id="ctl-${key}" aria-describedby="why-${key}"></div>
     <p class="why" id="why-${key}"></p>`;
@@ -91,7 +101,17 @@ for (const key of CONTROL_ORDER) {
     row.querySelector(".slider").append(mark);
   }
   $("#controls").append(row);
-  controlEls[key] = { input, out: row.querySelector("output"), why: row.querySelector(".why"), kind, c };
+  const tile = document.createElement("button");
+  tile.type = "button";
+  tile.dataset.tile = key;
+  tile.setAttribute("aria-controls", row.id);
+  tile.innerHTML = `<span class="tile-label">${c.short ?? c.label}</span><span class="tile-value"></span>`;
+  tile.addEventListener("click", () => {
+    state.selected = key;
+    update();
+  });
+  $("#tiles").append(tile);
+  controlEls[key] = { input, out: row.querySelector("output"), why: row.querySelector(".why"), row, tile, tileValue: tile.querySelector(".tile-value"), kind, c };
 }
 
 for (const button of document.querySelectorAll("[data-tool]")) {
@@ -112,6 +132,19 @@ for (const tab of document.querySelectorAll("[data-mode]")) {
     state.result = null;
     update();
   });
+}
+
+for (const condition of loaded.scene.lightConditions) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.light = condition.id;
+  button.textContent = condition.label;
+  button.addEventListener("click", () => {
+    state.lightId = condition.id;
+    state.result = null;
+    update();
+  });
+  $("#room-light").append(button);
 }
 
 const list = $("#scenario-list");
@@ -138,7 +171,7 @@ function setCamera(patch) {
 
 $("#reset").addEventListener("click", () => setCamera(standardCamera(loaded.scene)));
 $("#check").addEventListener("click", () => {
-  state.result = readiness(state.camera, currentScenario(), loaded.scene);
+  state.result = readiness(state.camera, currentScenario(), scene);
   if (state.result.ready && state.scenarioId) state.completed.add(state.scenarioId);
   update();
   $("#results").scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -180,17 +213,23 @@ function renderResults() {
 
 function update() {
   const { camera } = state;
-  const { scene } = loaded;
+  scene = roomScene();
   canvas.setAttribute("aria-label", scene.alt);
   canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
   const mark = $("#focus-mark");
   mark.style.setProperty("--at", `${focusToPos(scene.subjectM) / 10}%`);
   mark.textContent = `Speaker ${CONTROLS.focusM.format(scene.subjectM)}`;
+  const failing = new Set(state.result?.checks.filter((c) => !c.pass).map((c) => c.control));
   for (const [key, el] of Object.entries(controlEls)) {
     const pos = el.kind.toPos(el.c, camera[key]);
     if (Number(el.input.value) !== pos) el.input.value = pos;
     const label = el.c.format(camera[key]);
     el.out.textContent = label;
+    el.tileValue.textContent = label;
+    el.tile.setAttribute("aria-label", `${el.c.label} ${label}`);
+    el.tile.setAttribute("aria-pressed", String(key === state.selected));
+    el.tile.classList.toggle("warn", failing.has(key));
+    el.row.classList.toggle("selected", key === state.selected);
     el.input.setAttribute("aria-valuetext", label);
     el.why.textContent = explain(key, camera, scene);
   }
@@ -209,6 +248,13 @@ function update() {
   $("#histogram").hidden = !state.overlays.histogram;
   for (const tab of document.querySelectorAll("[data-mode]")) tab.setAttribute("aria-selected", String(tab.dataset.mode === state.mode));
   $("#challenges").hidden = state.mode !== "challenges";
+  const lightLocked = state.mode !== "free";
+  for (const button of document.querySelectorAll("[data-light]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.light === scene.light.id));
+    button.disabled = lightLocked;
+  }
+  $("#room-lock").hidden = !lightLocked;
+  $("#room-note").textContent = explainLight(scene);
   for (const btn of list.querySelectorAll("button")) {
     btn.classList.toggle("active", btn.dataset.scenario === state.scenarioId);
     btn.classList.toggle("completed", state.completed.has(btn.dataset.scenario));
@@ -278,7 +324,7 @@ function tick(now) {
   const frame = Math.floor(timeS * FPS);
   if (dirty || frame !== lastFrame) {
     dirty = false;
-    lastFrame = renderer.render({ loaded, camera: state.camera, scenario: currentScenario(), overlays: state.overlays, timeS });
+    lastFrame = renderer.render({ loaded, scene, camera: state.camera, scenario: currentScenario(), overlays: state.overlays, timeS });
     if (state.overlays.histogram) drawHistogram(renderer.histogram());
   }
   requestAnimationFrame(tick);

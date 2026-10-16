@@ -7,7 +7,7 @@ The practice camera on [Practice: dial in the shot](../../training/camera-basics
 | File | What it owns |
 |---|---|
 | `model.js` | The camera math: stops of exposure, white balance gains, noise, lens blur, LED banding, and the "Director ready" checks. Pure, so Node can import it. |
-| `scenarios.js` | The challenges. Each has a title, a brief, the camera's starting settings and any extra checks. |
+| `scenarios.js` | The challenges. Each has a title, a brief, the camera's starting settings, the room light if it isn't typical, and any extra checks. |
 | `explain.js` | The one-line explainer under each control. |
 | `layers.js` | Splits the photo into depth layers and fills each layer in behind the layers in front of it. |
 | `scene-loader.js` | Loads `scene/scene.json`, then the photo and its masks. |
@@ -25,7 +25,19 @@ The photo is a frame grab from the main camera on a real church stage. The numbe
 |---|---|---|---|
 | 7 m | 55 mm | f/2.8 | Curtains, truss and rails at 10 m, LED wall at 11 m |
 
-It uses an 18.96 mm wide sensor, 4000 K room light, 180° at 30 fps, ISO 400 and tint 0. The photo is a still, so nothing in it moves and the shutter teaches through brightness and LED wall banding.
+It uses an 18.96 mm wide sensor, 180° at 30 fps, ISO 400 and tint 0. The photo is a still, so nothing in it moves and the shutter teaches through brightness and LED wall banding.
+
+## Room light
+
+The team records in a gym with windows, so the room light changes with the weather. The photo was shot on a typical day, and it looks neutral at 4000 K.
+
+| Weather | Room light | Why |
+|---|---|---|
+| Typical | 4000 K | The house lights, with a little daylight from the windows. |
+| Cloudy | about 4600 K | Overcast daylight is blue. More of it comes through the windows and mixes with the 4000 K house lights, so the room gets cooler. |
+| Sunny | about 3600 K | Direct sun lands on the gym floor and walls and bounces back warm, so the room gets warmer. |
+
+The directions are what the team sees on real Sundays. The numbers are approximate. Free play has a Room light switch, and two challenges change the weather partway through a service. Changing the room light never changes the camera, so you have to notice and fix the white balance yourself.
 
 ## Replacing the photo
 
@@ -33,7 +45,7 @@ It uses an 18.96 mm wide sensor, 4000 K room light, 180° at 30 fps, ISO 400 and
 2. Run `python figures/virtual-camera/make-scenes.py`. It needs `pip install "rembg[cpu]" pillow`. It writes `wide.jpg`, `wide-mask-subject.png` and `wide-mask-wall.png` into `scene/`. If the LED wall's bottom edge moved, change `wall_bottom` in the script first. Look at the subject mask before you use it.
 3. Edit `scene/scene.json`:
     - Set each layer's `distanceM` to its real distance from the camera in meters.
-    - Change `lens`, `reference` and `lightK` if the camera, its standard settings or the room light are different.
+    - Change `lens`, `reference` and `light` if the camera, its standard settings or the room light are different.
 4. Run the tests, then `mkdocs build --strict`, and open the practice page.
 
 ### scene.json fields
@@ -43,7 +55,7 @@ It uses an 18.96 mm wide sensor, 4000 K room light, 180° at 30 fps, ISO 400 and
 | `alt` | What a screen reader says the picture shows. |
 | `image` | The photo file, relative to `scene/`. |
 | `reference` | The camera's standard settings, the ones the photo looks correctly exposed at. Exposure is counted in stops from here, and "Reset to standard settings" goes back to it. |
-| `lightK` | The color temperature of the room light. The photo as shot is the neutral result at this white balance. |
+| `light` | The room light conditions. `conditions` lists each one with an `id`, a `label` for the switch, its color temperature `lightK` and a `note` that says where the light comes from. `default` names the condition the photo was shot in. The photo as shot is the neutral result at that condition's white balance. |
 | `lens` | Focal length and sensor width in millimeters, for the depth of field math. |
 | `layers` | Each depth layer: `id`, a `label` used in sentences ("the speaker is soft"), `distanceM`, and `mask`. Order doesn't matter. |
 | `subject` | The layer the focus check and the focus mark use. |

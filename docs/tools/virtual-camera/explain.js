@@ -21,7 +21,7 @@ const EXPLAINERS = {
     return `${label}: ${parts.join(", ")}.`;
   },
   wbK(camera, scene) {
-    const diff = camera.wbK - scene.lightK;
+    const diff = camera.wbK - scene.light.lightK;
     const label = CONTROLS.wbK.format(camera.wbK);
     if (diff === 0) return `${label}: matches the room light, so white looks white.`;
     const where = `${Math.abs(diff)} K ${diff > 0 ? "above" : "below"} the room light`;
@@ -68,4 +68,9 @@ const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 
 export function explain(key, camera, scene) {
   return EXPLAINERS[key](camera, scene);
+}
+
+export function explainLight(scene) {
+  const { label, note, lightK } = scene.light;
+  return `${label}: ${note} The room is about ${lightK} K.`;
 }

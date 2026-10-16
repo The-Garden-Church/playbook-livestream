@@ -152,15 +152,18 @@ function compile(gl, fragment) {
   return { program, uniforms };
 }
 
+// The true amplitude at 172.8° is about 4%, which a real camera shows clearly but a small screen hides, so the display lifts faint bands while keeping their order.
+const BAND_DISPLAY_GAMMA = 0.6;
+
 export function frameUniforms(camera, scene, scenario, timeS) {
   const frame = Math.floor(timeS * FPS);
   return {
     frame,
-    bandAmp: scene.ledWall ? ledBanding(camera.shutterDeg, FPS, scene.ledWall.refreshHz) : 0,
+    bandAmp: scene.ledWall ? ledBanding(camera.shutterDeg, FPS, scene.ledWall.refreshHz) ** BAND_DISPLAY_GAMMA : 0,
     bandPhase: scene.ledWall ? (frame / FPS) * scene.ledWall.rollBandsPerS : 0,
     bandCount: scene.ledWall?.bandsPerFrame ?? 0,
     gain: 2 ** (exposureStops(camera, scene.reference) + (scenario?.sceneExposureOffset ?? 0)),
-    wb: wbGains(camera.wbK, camera.tint, scene.lightK),
+    wb: wbGains(camera.wbK, camera.tint, scene.light.lightK),
     sigma: addedNoiseSigma(camera.iso, scene.reference.iso),
   };
 }
@@ -254,11 +257,11 @@ export function createRenderer(canvas) {
     });
   }
 
-  function render({ loaded, camera, scenario, overlays, timeS }) {
+  function render({ loaded, scene, camera, scenario, overlays, timeS }) {
     if (!uploaded.has(loaded)) uploaded.set(loaded, upload(loaded));
     const g = uploaded.get(loaded);
     current = g;
-    const { scene, width, height } = g;
+    const { width, height } = g;
     blurLayers(g, camera);
     const u = frameUniforms(camera, scene, scenario, timeS);
     gl.useProgram(cameraProgram.program);
