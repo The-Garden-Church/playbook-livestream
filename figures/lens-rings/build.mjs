@@ -2,6 +2,7 @@ import * as k from "../anatomy/kit/iso-kit.mjs";
 import * as G from "../anatomy/kit/lathe.mjs";
 import { kitScript } from "../anatomy/scripts/inline-kit.mjs";
 import { writeFigure } from "../embed.mjs";
+import { springTo } from "../spring.mjs";
 
 const WIDTH = 600;
 const HEIGHT = 390;
@@ -393,6 +394,7 @@ const DATA = {
 const live = `
 const DATA = ${JSON.stringify(DATA)};
 const { P, ZA, READ, RIBS, ZOOM_MM, FOCUS_M, APEX, BOARD_X, SENSOR_W } = DATA;
+const springTo = ${springTo.toString()};
 const stage = document.querySelector(".lr-stage");
 const svg = stage.querySelector("svg");
 const readout = document.querySelector("[data-readout]");
@@ -404,8 +406,8 @@ const at = (p) => iso(p, P);
 const fade = (x, a, b) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const f1 = (n) => n.toFixed(1);
 const rings = {
-  zoom: { stops: ZOOM_MM.length, step: DATA.ZOOM_STEP, v: DATA.ZOOM_START, target: DATA.ZOOM_START, el: svg.querySelector('[data-ring="zoom"]'), hit: svg.querySelector('[data-hit="zoom"]'), ribs: [...svg.querySelectorAll('[data-part="zoom-ribs"] path')], nums: [...svg.querySelectorAll('[data-part="zoom-nums"] text')], geo: DATA.rings.zoom },
-  focus: { stops: FOCUS_M.length, step: DATA.FOCUS_STEP, v: DATA.FOCUS_START, target: DATA.FOCUS_START, el: svg.querySelector('[data-ring="focus"]'), hit: svg.querySelector('[data-hit="focus"]'), ribs: [...svg.querySelectorAll('[data-part="focus-ribs"] path')], nums: [...svg.querySelectorAll('[data-part="focus-nums"] text')], geo: DATA.rings.focus },
+  zoom: { stops: ZOOM_MM.length, step: DATA.ZOOM_STEP, v: DATA.ZOOM_START, target: DATA.ZOOM_START, el: svg.querySelector('[data-ring="zoom"]'), hit: svg.querySelector('[data-hit="zoom"]'), ribs: [...svg.querySelectorAll('[data-part="zoom-ribs"] path')], nums: [...svg.querySelectorAll('[data-part="zoom-nums"] text')], geo: DATA.rings.zoom, spin: { x: 0, v: 0 } },
+  focus: { stops: FOCUS_M.length, step: DATA.FOCUS_STEP, v: DATA.FOCUS_START, target: DATA.FOCUS_START, el: svg.querySelector('[data-ring="focus"]'), hit: svg.querySelector('[data-hit="focus"]'), ribs: [...svg.querySelectorAll('[data-part="focus-ribs"] path')], nums: [...svg.querySelectorAll('[data-part="focus-nums"] text')], geo: DATA.rings.focus, spin: { x: 0, v: 0 } },
 };
 const groups = DATA.groups.map((g) => ({ ...g, els: [...svg.querySelectorAll('[data-group="' + g.name + '"]')] }));
 const coneFill = svg.querySelector('[data-part="cone-fill"]');
@@ -495,9 +497,16 @@ function tick(now) {
   let moving = false;
   for (const key in rings) {
     const ring = rings[key];
-    ring.v = calm ? ring.target : ring.v + (ring.target - ring.v) * (1 - Math.exp(-dt / 0.2));
-    if (Math.abs(ring.target - ring.v) < 0.001) ring.v = ring.target;
-    if (ring.v !== ring.target) moving = true;
+    if (calm || touring) {
+      ring.v = calm ? ring.target : ring.v + (ring.target - ring.v) * (1 - Math.exp(-dt / 0.2));
+      if (Math.abs(ring.target - ring.v) < 0.001) ring.v = ring.target;
+      ring.spin.v = 0;
+      if (ring.v !== ring.target) moving = true;
+    } else {
+      ring.spin.x = ring.v;
+      if (springTo(ring.spin, ring.target, dt)) moving = true;
+      ring.v = ring.spin.x;
+    }
   }
   draw();
   frameId = visible && (touring || moving) ? requestAnimationFrame(tick) : 0;
@@ -508,12 +517,13 @@ function hold() {
   clearTimeout(idleTimer);
   idleTimer = setTimeout(() => { if (still.matches || drag) return; touring = true; clock = -0.6; tourStep = -1; run(); }, 3600);
 }
-function set(name, value) {
+function set(name, value, from = rings[name].target) {
   const ring = rings[name];
   const next = Math.max(0, Math.min(ring.stops - 1, value));
   hold();
   light(name);
   if (next !== ring.target) { ring.target = next; describe(); }
+  if (next !== from) window.detent();
   run();
 }
 let drag = null;
@@ -554,7 +564,8 @@ stage.addEventListener("keydown", (event) => {
   event.preventDefault();
   const ring = rings[name];
   if (focused !== name) rings[name].hit.focus({ preventScroll: true });
-  set(name, Math.round(touring ? ring.v : ring.target) + delta);
+  const here = Math.round(touring ? ring.v : ring.target);
+  set(name, here + delta, here);
 });
 new IntersectionObserver((entries) => { visible = entries[entries.length - 1].isIntersecting; if (visible) run(); }, { rootMargin: "120px 0px" }).observe(stage);
 if (still.matches) touring = false;
