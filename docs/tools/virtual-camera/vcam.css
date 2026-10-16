@@ -205,9 +205,8 @@ input:focus-visible {
 }
 
 .modes button[aria-selected="true"] {
-  background: var(--surface-2);
-  color: #fff;
-  box-shadow: inset 0 -2px 0 var(--gold);
+  background: var(--gold);
+  color: #121212;
 }
 
 .scenario-list {
@@ -240,7 +239,17 @@ input:focus-visible {
 
 .scenario-list button.active {
   border-color: var(--gold);
-  background: var(--surface-2);
+  background: var(--gold);
+  color: #121212;
+}
+
+.scenario-list button.active .num {
+  background: #121212;
+  color: var(--gold);
+}
+
+.scenario-list button.active .done {
+  color: #121212;
 }
 
 .scenario-list .num {
@@ -279,9 +288,9 @@ input:focus-visible {
 .brief {
   margin: 0 0 14px;
   padding: 10px 14px;
-  border-left: 3px solid var(--gold);
+  border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: 0 6px 6px 0;
+  border-radius: 6px;
 }
 
 .brief p {
