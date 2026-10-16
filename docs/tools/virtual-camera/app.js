@@ -217,12 +217,13 @@ function update() {
   canvas.setAttribute("aria-label", scene.alt);
   canvas.style.aspectRatio = `${loaded.width} / ${loaded.height}`;
   const mark = $("#focus-mark");
-  mark.style.setProperty("--at", `${focusToPos(scene.subjectM) / 10}%`);
+  mark.style.setProperty("--at", focusToPos(scene.subjectM) / 1000);
   mark.textContent = `Speaker ${CONTROLS.focusM.format(scene.subjectM)}`;
   const failing = new Set(state.result?.checks.filter((c) => !c.pass).map((c) => c.control));
   for (const [key, el] of Object.entries(controlEls)) {
     const pos = el.kind.toPos(el.c, camera[key]);
     if (Number(el.input.value) !== pos) el.input.value = pos;
+    el.input.style.setProperty("--fill", `${((pos - el.input.min) / (el.input.max - el.input.min)) * 100}%`);
     const label = el.c.format(camera[key]);
     el.out.textContent = label;
     el.tileValue.textContent = label.replace(/^ISO /, "");
