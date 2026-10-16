@@ -21,19 +21,38 @@ export function snap(key, value) {
   return c.kind === "range" ? Math.round((clamped - c.min) / c.step) * c.step + c.min : clamped;
 }
 
+function maskKind(mask) {
+  if (mask === "remainder") return "remainder";
+  if (typeof mask === "string") return "image";
+  if (Array.isArray(mask?.rects) && mask.rects.every((r) => r.length === 4)) return "rects";
+  return null;
+}
+
 export function parseScene(raw) {
+  const where = `scene "${raw.id}"`;
   const layers = [...raw.layers].sort((a, b) => b.distanceM - a.distanceM);
-  const ids = new Set(layers.map((l) => l.id));
-  for (const ref of [raw.subject, raw.ledWall.layer, raw.motion.layer]) {
-    if (!ids.has(ref)) throw new Error(`scene.json names layer "${ref}" but has no layer with that id`);
+  const byId = new Map(layers.map((l) => [l.id, l]));
+  for (const ref of [raw.subject, raw.motion.layer, raw.ledWall?.layer].filter(Boolean)) {
+    if (!byId.has(ref)) throw new Error(`${where} names layer "${ref}" but has no layer with that id`);
   }
-  if (layers.filter((l) => l.mask === "remainder").length !== 1) throw new Error('scene.json needs exactly one layer with mask "remainder"');
+  for (const layer of layers) {
+    if (!maskKind(layer.mask)) throw new Error(`${where} layer "${layer.id}" needs a mask file, "remainder", or { rects }`);
+  }
+  if (layers.filter((l) => l.mask === "remainder").length !== 1) throw new Error(`${where} needs exactly one layer with mask "remainder"`);
   return {
     ...raw,
     layers,
     reference: { ...raw.reference },
-    subjectM: layers.find((l) => l.id === raw.subject).distanceM,
+    ledWall: raw.ledWall ?? null,
+    subjectM: byId.get(raw.subject).distanceM,
+    motionM: byId.get(raw.motion.layer).distanceM,
   };
+}
+
+export function parseScenes(raw) {
+  const scenes = raw.scenes.map(parseScene);
+  if (new Set(scenes.map((s) => s.id)).size !== scenes.length) throw new Error("scenes.json has two scenes with the same id");
+  return scenes;
 }
 
 export function standardCamera(scene) {
@@ -108,6 +127,19 @@ export function motionBlurPx(shutterDeg, speedPxPerSec) {
   return Math.abs(speedPxPerSec) * (shutterDeg / 360 / FPS);
 }
 
+export function imagePxPerMetre(distanceM, lens, widthPx) {
+  return (lens.focalMm / (distanceM * 1000 - lens.focalMm)) * 1000 * (widthPx / lens.sensorMm);
+}
+
+export function gestureAt(motion, pxPerMetre, timeS) {
+  const amplitudeM = motion.travelM / 2;
+  const w = motion.peakSpeedMps / amplitudeM;
+  return {
+    offsetPx: amplitudeM * pxPerMetre * Math.sin(w * timeS),
+    speedPxPerSec: motion.peakSpeedMps * pxPerMetre * Math.cos(w * timeS),
+  };
+}
+
 export function ledBanding(shutterDeg, fps, refreshHz = MAINS_HZ) {
   const cycles = (shutterDeg / 360 / fps) * refreshHz;
   const amplitude = Math.abs(Math.sin(Math.PI * cycles) / (Math.PI * cycles));
@@ -137,13 +169,16 @@ const CHECKS = [
   {
     id: "shutter",
     label: "Shutter",
-    evaluate: (camera) =>
-      camera.shutterDeg === 180
-        ? { pass: true, message: "Shutter is locked at 180°, so motion looks natural and the LED wall is clean." }
-        : {
-            pass: false,
-            message: `The shutter is at ${camera.shutterDeg}°. Put it back to 180° so motion looks natural and the LED wall stops banding.`,
-          },
+    evaluate: (camera, { scene }) => {
+      const standard = scene.reference.shutterDeg;
+      if (camera.shutterDeg === standard) {
+        return { pass: true, message: `Shutter is locked at ${standard}°, so motion looks natural${scene.ledWall ? " and the LED wall is clean" : ""}.` };
+      }
+      return {
+        pass: false,
+        message: `The shutter is at ${camera.shutterDeg}°. Put it back to ${standard}° so motion looks natural${scene.ledWall ? " and the LED wall stops banding" : ""}.`,
+      };
+    },
   },
   {
     id: "whiteBalance",
@@ -172,8 +207,11 @@ const CHECKS = [
     evaluate: (camera, { scene, scenario }) => {
       const e = sceneExposure(camera, scene, scenario);
       if (Math.abs(e) <= 1 / 3 + 1e-9) return { pass: true, message: "Brightness is right on. Faces sit in the skin range." };
-      if (camera.shutterDeg !== 180) {
-        return { pass: false, message: "Brightness is off, but fix the shutter first. Putting it back to 180° changes the brightness too." };
+      if (camera.shutterDeg !== scene.reference.shutterDeg) {
+        return {
+          pass: false,
+          message: `Brightness is off, but fix the shutter first. Putting it back to ${scene.reference.shutterDeg}° changes the brightness too.`,
+        };
       }
       return e > 0
         ? { pass: false, message: `The picture is ${stopWord(e)} too bright. Close the aperture or lower ISO.` }
@@ -194,8 +232,8 @@ const CHECKS = [
     evaluate: (camera, { scene }) => {
       if (inDepthOfField(scene.subjectM, camera, scene.lens)) return { pass: true, message: "The speaker is sharp." };
       return camera.focusM > scene.subjectM
-        ? { pass: false, message: "The speaker is soft because focus is set behind them. Turn focus closer, to the lectern." }
-        : { pass: false, message: "The speaker is soft because focus is set in front of them. Turn focus farther, to the lectern." };
+        ? { pass: false, message: "The speaker is soft because focus is set behind them. Turn focus closer, to the speaker." }
+        : { pass: false, message: "The speaker is soft because focus is set in front of them. Turn focus farther, to the speaker." };
     },
   },
 ];
@@ -204,8 +242,8 @@ export const SCENARIO_CHECKS = {
   apertureFirst: {
     id: "apertureFirst",
     label: "Aperture before ISO",
-    evaluate: (camera) =>
-      camera.iso > 400 && camera.fStop > CONTROLS.fStop.values[0]
+    evaluate: (camera, { scene }) =>
+      camera.iso > scene.reference.iso && camera.fStop > CONTROLS.fStop.values[0]
         ? {
             pass: false,
             message: `You raised ISO while the aperture still had room to open. Open up to f/${CONTROLS.fStop.values[0]} first, then add only the ISO you still need.`,

@@ -16,12 +16,34 @@ export function decodeSrgb(rgba, count) {
 
 export function partitionMasks(masks, count) {
   const remainderIndex = masks.indexOf(null);
-  const out = masks.map((m) => (m ? Float32Array.from(m) : new Float32Array(count)));
-  for (let i = 0; i < count; i++) {
-    let sum = 0;
-    for (let l = 0; l < out.length; l++) if (l !== remainderIndex) sum += out[l][i];
-    if (sum > 1) for (let l = 0; l < out.length; l++) out[l][i] /= sum;
-    out[remainderIndex][i] = Math.max(0, 1 - Math.min(1, sum));
+  const out = masks.map((m) => (m ? new Float32Array(count) : null));
+  const free = new Float32Array(count).fill(1);
+  for (let l = masks.length - 1; l >= 0; l--) {
+    if (l === remainderIndex) continue;
+    for (let i = 0; i < count; i++) {
+      const take = Math.min(masks[l][i], free[i]);
+      out[l][i] = take;
+      free[i] -= take;
+    }
+  }
+  out[remainderIndex] = free;
+  return out;
+}
+
+const smoothstep = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+
+export function rectMask(rects, featherPx, scale, w, h) {
+  const out = new Float32Array(w * h);
+  const f = Math.max(featherPx * scale, 1e-6);
+  for (const [x0, y0, x1, y1] of rects.map((r) => r.map((v) => v * scale))) {
+    for (let y = 0; y < h; y++) {
+      const wy = smoothstep((Math.min(y + 0.5 - y0, y1 - y - 0.5) + f / 2) / f);
+      if (wy === 0) continue;
+      for (let x = 0; x < w; x++) {
+        const v = wy * smoothstep((Math.min(x + 0.5 - x0, x1 - x - 0.5) + f / 2) / f);
+        if (v > out[y * w + x]) out[y * w + x] = v;
+      }
+    }
   }
   return out;
 }
@@ -68,16 +90,19 @@ function pushPullFill(color, weight, w, h) {
 
 export function buildLayers(color, masks, w, h, extendIndex = () => true) {
   const count = w * h;
+  const total = new Float32Array(count);
+  for (const m of masks) for (let i = 0; i < count; i++) total[i] += m[i];
+  const upTo = new Float32Array(count);
   return masks.map((mask, l) => {
-    const front = new Float32Array(count);
-    for (let j = l + 1; j < masks.length; j++) for (let i = 0; i < count; i++) front[i] += masks[j][i];
-    const clean = Float32Array.from(mask, (m, i) => (front[i] < 0.02 ? m : 0));
-    const fill = pushPullFill(color, clean, w, h);
+    for (let i = 0; i < count; i++) upTo[i] += mask[i];
+    const front = Float32Array.from(total, (t, i) => Math.max(0, t - upTo[i]));
+    const open = (i) => front[i] < 0.02;
+    const fill = pushPullFill(color, Float32Array.from(upTo, (u, i) => (open(i) ? u : 0)), w, h);
     const extend = extendIndex(l);
     const out = new Uint8Array(count * 4);
     for (let i = 0; i < count; i++) {
       const alpha = Math.min(1, mask[i] + (extend ? front[i] : 0));
-      const own = clean[i] > 0 ? 1 : 0;
+      const own = open(i) && mask[i] > 0;
       for (let k = 0; k < 3; k++) out[i * 4 + k] = linearToSrgb8((own ? color[i * 3 + k] : fill[i * 3 + k]) * alpha);
       out[i * 4 + 3] = Math.round(alpha * 255);
     }

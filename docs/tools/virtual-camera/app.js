@@ -1,7 +1,7 @@
 import { CONTROLS, CONTROL_ORDER, FPS, readiness, snap, standardCamera } from "./model.js";
 import { SCENARIOS, scenarioCamera } from "./scenarios.js";
 import { explain } from "./explain.js";
-import { loadScene } from "./scene-loader.js";
+import { loadScene, loadSceneList } from "./scene-loader.js";
 import { createRenderer, HIST_BINS } from "./renderer.js";
 
 const RENDER_WIDTH = 1280;
@@ -14,7 +14,8 @@ new ResizeObserver(() =>
 
 let loaded;
 try {
-  loaded = await loadScene(new URL("scene/", import.meta.url), RENDER_WIDTH);
+  const sceneBase = new URL("scene/", import.meta.url);
+  loaded = await loadScene((await loadSceneList(sceneBase))[0], sceneBase, RENDER_WIDTH);
 } catch (error) {
   $("#nogl").textContent = "The practice scene didn't load. Refresh the page to try again.";
   $("#nogl").hidden = false;
@@ -83,7 +84,7 @@ for (const key of CONTROL_ORDER) {
     const mark = document.createElement("span");
     mark.className = "mark";
     mark.style.setProperty("--at", `${focusToPos(scene.subjectM) / 10}%`);
-    mark.textContent = `Lectern ${CONTROLS.focusM.format(scene.subjectM)}`;
+    mark.textContent = `Speaker ${CONTROLS.focusM.format(scene.subjectM)}`;
     row.querySelector(".slider").append(mark);
   }
   $("#controls").append(row);
@@ -120,7 +121,7 @@ SCENARIOS.forEach((s, i) => {
 
 function startScenario(id) {
   state.scenarioId = id;
-  state.camera = scenarioCamera(currentScenario(), standard, scene);
+  state.camera = scenarioCamera(currentScenario(), scene);
   state.result = null;
   update();
 }

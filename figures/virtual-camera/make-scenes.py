@@ -25,8 +25,7 @@ def subject_mask(photo, session):
 
 def wall_mask(size, bottom, subject):
     mask = Image.new("L", size, 0)
-    if bottom:
-        ImageDraw.Draw(mask).rectangle([0, 0, size[0], bottom], fill=255)
+    ImageDraw.Draw(mask).rectangle([0, 0, size[0], bottom], fill=255)
     return ImageChops.subtract(mask, subject)
 
 
@@ -39,7 +38,8 @@ def main():
         subject = subject_mask(photo, session)
         photo.save(OUT / f"{name}.jpg", quality=90, optimize=True)
         subject.save(OUT / f"{name}-mask-subject.png", optimize=True)
-        wall_mask(photo.size, spec["wall_bottom"], subject).save(OUT / f"{name}-mask-wall.png", optimize=True)
+        if spec["wall_bottom"]:
+            wall_mask(photo.size, spec["wall_bottom"], subject).save(OUT / f"{name}-mask-wall.png", optimize=True)
         print("wrote", name, photo.size)
 
 

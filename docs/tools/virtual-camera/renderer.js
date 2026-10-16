@@ -1,4 +1,4 @@
-import { FPS, NOISE_CHROMA_RATIO, blurRadiusPx, exposureStops, ledBanding, motionBlurPx, noiseSigma, wbGains } from "./model.js";
+import { FPS, NOISE_CHROMA_RATIO, blurRadiusPx, exposureStops, gestureAt, imagePxPerMetre, ledBanding, motionBlurPx, noiseSigma, wbGains } from "./model.js";
 
 const MAX_LAYERS = 8;
 const HIST_W = 128;
@@ -168,22 +168,18 @@ export function frameUniforms(camera, scene, scenario, timeS, width, height) {
   const frame = Math.floor(timeS * FPS);
   const exposureS = camera.shutterDeg / 360 / FPS;
   const tMid = frame / FPS + exposureS / 2;
-  const { amplitude, periodS, direction } = scene.motion;
-  const [dx, dy] = direction;
+  const [dx, dy] = scene.motion.direction;
   const norm = Math.hypot(dx, dy);
-  const ampPx = amplitude * width;
-  const w = (2 * Math.PI) / periodS;
-  const offsetPx = ampPx * Math.sin(w * tMid);
-  const speedPx = ampPx * w * Math.cos(w * tMid);
-  const blurPx = motionBlurPx(camera.shutterDeg, speedPx);
-  const band = ledBanding(camera.shutterDeg, FPS, scene.ledWall.refreshHz);
+  const { offsetPx, speedPxPerSec } = gestureAt(scene.motion, imagePxPerMetre(scene.motionM, scene.lens, width), tMid);
+  const blurPx = motionBlurPx(camera.shutterDeg, speedPxPerSec);
+  const band = scene.ledWall ? ledBanding(camera.shutterDeg, FPS, scene.ledWall.refreshHz) : { amplitude: 0, rollHz: 0 };
   return {
     frame,
     motionOffset: [(offsetPx * dx) / norm / width, (offsetPx * dy) / norm / height],
     motionSpan: [(blurPx * dx) / norm / width, (blurPx * dy) / norm / height],
     bandAmp: band.amplitude,
     bandPhase: band.rollHz * timeS,
-    bandCount: scene.ledWall.bandsPerFrame,
+    bandCount: scene.ledWall?.bandsPerFrame ?? 0,
     gain: 2 ** (exposureStops(camera, scene.reference) + (scenario?.sceneExposureOffset ?? 0)),
     wb: wbGains(camera.wbK, camera.tint, scene.lightK),
     sigma: noiseSigma(camera.iso),
@@ -244,7 +240,7 @@ export function createRenderer(canvas, loaded) {
   const histPixels = new Uint8Array(HIST_W * HIST_H * 4);
 
   const ids = scene.layers.map((l) => l.id);
-  const wallIndex = ids.indexOf(scene.ledWall.layer);
+  const wallIndex = scene.ledWall ? ids.indexOf(scene.ledWall.layer) : -1;
   const motionIndex = ids.indexOf(scene.motion.layer);
   let opticsKey = "";
 

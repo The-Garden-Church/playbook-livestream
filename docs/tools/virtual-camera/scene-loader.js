@@ -1,5 +1,5 @@
-import { parseScene } from "./model.js";
-import { buildLayers, decodeSrgb, partitionMasks } from "./layers.js";
+import { parseScenes } from "./model.js";
+import { buildLayers, decodeSrgb, partitionMasks, rectMask } from "./layers.js";
 
 const loadImage = (url) =>
   new Promise((resolve, reject) => {
@@ -18,19 +18,30 @@ function rasterize(img, width, height) {
   return ctx.getImageData(0, 0, width, height).data;
 }
 
-export async function loadScene(baseUrl, maxWidth) {
-  const response = await fetch(new URL("scene.json", baseUrl));
-  const scene = parseScene(await response.json());
+export async function loadSceneList(baseUrl) {
+  const response = await fetch(new URL("scenes.json", baseUrl));
+  return parseScenes(await response.json());
+}
+
+export async function loadScene(scene, baseUrl, maxWidth) {
   const photo = await loadImage(new URL(scene.image, baseUrl));
   const width = Math.min(maxWidth, photo.naturalWidth);
   const height = Math.round((width * photo.naturalHeight) / photo.naturalWidth);
   const count = width * height;
+  const scale = width / photo.naturalWidth;
   const color = decodeSrgb(rasterize(photo, width, height), count);
+  const imageMask = async (file) => {
+    const rgba = rasterize(await loadImage(new URL(file, baseUrl)), width, height);
+    return Float32Array.from({ length: count }, (_, i) => rgba[i * 4] / 255);
+  };
   const drawn = await Promise.all(
-    scene.layers.map(async (layer) => {
-      if (layer.mask === "remainder") return null;
-      const rgba = rasterize(await loadImage(new URL(layer.mask, baseUrl)), width, height);
-      return Float32Array.from({ length: count }, (_, i) => rgba[i * 4] / 255);
+    scene.layers.map(async ({ mask }) => {
+      if (mask === "remainder") return null;
+      if (typeof mask === "string") return imageMask(mask);
+      const region = rectMask(mask.rects, mask.featherPx ?? 0, scale, width, height);
+      if (!mask.image) return region;
+      const base = await imageMask(mask.image);
+      return base.map((v, i) => v * region[i]);
     }),
   );
   const masks = partitionMasks(drawn, count);

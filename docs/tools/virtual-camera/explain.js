@@ -10,11 +10,16 @@ const EXPLAINERS = {
   shutterDeg(camera, scene) {
     const v = camera.shutterDeg;
     const label = CONTROLS.shutterDeg.format(v);
-    if (v === scene.reference.shutterDeg) return `${label}: standard. Half of each frame, natural motion, no flicker.`;
-    const motion = v < 150 ? "choppy motion" : v > 200 ? "smeary motion" : "natural motion";
-    const { amplitude } = ledBanding(v, FPS, scene.ledWall.refreshHz);
-    const bands = amplitude === 0 ? "no flicker" : amplitude < 0.1 ? "faint bands on the LED wall" : "and the LED wall bands";
-    return `${label}: ${brightness(stopsBetween("shutterDeg", v, scene.reference.shutterDeg))}, ${motion}, ${bands}.`;
+    const wall = scene.ledWall;
+    if (v === scene.reference.shutterDeg) return `${label}: standard. Half of each frame, natural motion${wall ? ", no flicker" : ""}.`;
+    const mover = scene.motion.label;
+    const motion = v < 150 ? `${mover} freeze mid-move, so motion looks choppy` : v > 200 ? `${mover} smear as they move` : "natural motion";
+    const parts = [brightness(stopsBetween("shutterDeg", v, scene.reference.shutterDeg)), motion];
+    if (wall) {
+      const { amplitude } = ledBanding(v, FPS, wall.refreshHz);
+      parts.push(amplitude === 0 ? "no flicker" : amplitude < 0.1 ? "faint bands on the LED wall" : "and the LED wall bands");
+    }
+    return `${label}: ${parts.join(", ")}.`;
   },
   wbK(camera, scene) {
     const diff = camera.wbK - scene.lightK;
@@ -35,10 +40,13 @@ const EXPLAINERS = {
   fStop(camera, scene) {
     const label = CONTROLS.fStop.format(camera.fStop);
     const stops = stopsBetween("fStop", camera.fStop, scene.reference.fStop);
-    if (stops === 0) return `${label}: standard. Bright enough, and forgiving focus.`;
-    return stops > 0
-      ? `${label}: ${brightness(stops)} than standard, background softer.`
-      : `${label}: ${brightness(stops)} than standard, more of the room is sharp.`;
+    const line =
+      stops === 0
+        ? `${label}: standard. Bright enough, and forgiving focus.`
+        : stops > 0
+          ? `${label}: ${brightness(stops)} than standard, background softer.`
+          : `${label}: ${brightness(stops)} than standard, more of the room is sharp.`;
+    return camera.fStop === 2.8 ? `${line} Many cameras show this as f/2.9.` : line;
   },
   iso(camera, scene) {
     const label = CONTROLS.iso.format(camera.iso);
